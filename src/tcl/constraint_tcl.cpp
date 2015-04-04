@@ -1663,7 +1663,7 @@ int tclcommand_constraint_parse_loc_ext_field_plate(Constraint *con, Tcl_Interp 
 	return (TCL_ERROR);
       argc -= 2; argv += 2;
     }
-    else if(!strncmp(argv[0], "plate center", strlen(argv[0]))) {
+    else if(!strncmp(argv[0], "center", strlen(argv[0]))) {
       if(argc < 4) {
         Tcl_AppendResult(interp, "usage: constraint loc_ext_field_plate center <x> <y> <z>", (char *) NULL);
 	return (TCL_ERROR);
