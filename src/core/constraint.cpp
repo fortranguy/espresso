@@ -2253,6 +2253,66 @@ double ext_magn_field_energy(Particle *p1, Constraint_ext_magn_field *c)
   return 0;
 }
 //end ER
+void loc_ext_field_plate_set_field(double field[3], double sigma, double size, double x, double z)
+{
+  double x_p, x_m;
+  
+  x_p = x + size/2.;
+  x_m = x - size/2.;
+  
+  field[0] = sigma * log((x_p*x_p + z*z) / (x_m*x_m + z*z));
+  field[1] = 0.;
+  field[2] = sigma* 2.*(atan(x_p/z) - atan(x_m/z));
+}
+
+void add_loc_ext_field_plate_force(Particle *p1, double ppos[3], Constraint_loc_ext_field_plate *c)
+{
+#ifdef ROTATION
+#ifdef DIPOLES
+    double dx_fieldx, dz_fieldz, dx_fieldz, dz_fieldx;
+    double field[3];
+    double x, z;
+    double x_p, x_m;
+    
+    x = ppos[0] - c->pos[0];
+    z = ppos[2] - c->pos[2];
+    
+    x_p = x + c->size/2.;
+    x_m = x - c->size/2.;  
+    
+    dx_fieldx = c->sigma * 2.*(x_p/(x_p*x_p + z*z) - x_m/(x_m*x_m + z*z));
+    dz_fieldz =-dx_fieldx;
+    dx_fieldz = c->sigma * 2.*z*(1./(x_p*x_p + z*z) - 1./(x_m*x_m + z*z));
+    dz_fieldx = dx_fieldz;
+    
+    p1->f.f[0] += p1->r.dip[0] * dx_fieldx + p1->r.dip[2] * dx_fieldz;
+    p1->f.f[2] += p1->r.dip[0] * dz_fieldx + p1->r.dip[2] * dz_fieldz;
+    
+    loc_ext_field_plate_set_field(field, c->sigma, c->size, x, z);
+
+    p1->f.torque[0] += p1->r.dip[1] * field[2];
+    p1->f.torque[1] += p1->r.dip[2] * field[0] - p1->r.dip[0] * field[2];
+    p1->f.torque[2] +=-p1->r.dip[1] * field[0];
+#endif
+#endif
+}
+
+
+double loc_ext_field_plate_energy(Particle *p1, double ppos[3], Constraint_loc_ext_field_plate *c)
+{
+#ifdef DIPOLES
+    double field[3];
+    double x, z;
+    
+    x = ppos[0] - c->pos[0];
+    z = ppos[2] - c->pos[2];
+    
+    loc_ext_field_plate_set_field(field, c->sigma, c->size, x, z);
+    
+    return -1.0 * scalar(field, p1->r.dip);
+#endif
+    return 0;
+}
 
 void reflect_particle(Particle *p1, double *distance_vec, int reflecting) {
   double vec[3];
@@ -2596,6 +2656,8 @@ void add_constraints_forces(Particle *p1)
 #ifdef DIPOLES
     case CONSTRAINT_EXT_MAGN_FIELD:
       add_ext_magn_field_force(p1, &constraints[n].c.emfield);
+    case CONSTRAINT_LOC_EXT_FIELD_PLATE:
+      add_loc_ext_field_plate_force(p1, folded_pos, &constraints[n].c.lefield_plate);
       break;
 #endif
     
@@ -2852,6 +2914,10 @@ double add_constraints_energy(Particle *p1)
     case CONSTRAINT_EXT_MAGN_FIELD:
       magnetic_en = ext_magn_field_energy(p1, &constraints[n].c.emfield);
       break;
+    case CONSTRAINT_LOC_EXT_FIELD_PLATE:      
+      magnetic_en = loc_ext_field_plate_energy(p1, folded_pos, &constraints[n].c.lefield_plate);
+      break;
+    
       //@TODO: implement energy of Plane, Slitpore
   case CONSTRAINT_PLANE:
     {
