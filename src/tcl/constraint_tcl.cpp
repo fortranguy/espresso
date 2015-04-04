@@ -242,6 +242,18 @@ static int tclprint_to_result_Constraint(Tcl_Interp *interp, int i)
     Tcl_AppendResult(interp, buffer, (char *) NULL);
     break; 
 //end ER
+  case CONSTRAINT_LOC_EXT_FIELD_PLATE:
+    Tcl_PrintDouble(interp, con->c.lefield_plate.sigma, buffer);
+    Tcl_AppendResult(interp, "sigma ", buffer, " ", (char *) NULL);
+    Tcl_PrintDouble(interp, con->c.lefield_plate.size, buffer);
+    Tcl_AppendResult(interp, "size ", buffer, " ", (char *) NULL);
+    Tcl_PrintDouble(interp, con->c.lefield_plate.pos[0], buffer);
+    Tcl_AppendResult(interp, "center ", buffer, " ", (char *) NULL);
+    Tcl_PrintDouble(interp, con->c.lefield_plate.pos[1], buffer);
+    Tcl_AppendResult(interp, buffer, " ", (char *) NULL);
+    Tcl_PrintDouble(interp, con->c.lefield_plate.pos[2], buffer);
+    Tcl_AppendResult(interp, buffer, (char *) NULL);
+    break;
   case CONSTRAINT_PLANE:
     Tcl_PrintDouble(interp, con->c.plane.pos[0], buffer);
     Tcl_AppendResult(interp, "plane cell ", buffer, " ", (char *) NULL);
@@ -1619,6 +1631,71 @@ int tclcommand_constraint_parse_ext_magn_field(Constraint *con, Tcl_Interp *inte
 }
 //end ER
 
+int tclcommand_constraint_parse_loc_ext_field_plate(Constraint *con, Tcl_Interp *interp,
+		      int argc, char **argv)
+{
+  int i;
+  con->type = CONSTRAINT_LOC_EXT_FIELD_PLATE;
+  con->part_rep.p.type=-1;
+  
+  con->c.lefield_plate.sigma = 0.;
+  con->c.lefield_plate.size = 0.;
+  for(i=0; i<3; i++) {
+     con->c.lefield_plate.pos[i] = 0.;
+  }
+
+  while (argc > 0) {
+    if(!strncmp(argv[0], "sigma", strlen(argv[0]))) {
+      if(argc < 2) {
+	      Tcl_AppendResult(interp, "usage: constraint loc_ext_field_plate sigma <sigma>", (char *) NULL);
+	      return (TCL_ERROR);
+      }
+      if (Tcl_GetDouble(interp, argv[1], &(con->c.lefield_plate.sigma)) == TCL_ERROR)
+	return (TCL_ERROR);
+      argc -= 2; argv += 2;
+    }
+    else if(!strncmp(argv[0], "size", strlen(argv[0]))) {
+      if(argc < 2) {
+	      Tcl_AppendResult(interp, "usage: constraint loc_ext_field_plate size <size>", (char *) NULL);
+	      return (TCL_ERROR);
+      }
+      if (Tcl_GetDouble(interp, argv[1], &(con->c.lefield_plate.size)) == TCL_ERROR)
+	return (TCL_ERROR);
+      argc -= 2; argv += 2;
+    }
+    else if(!strncmp(argv[0], "plate center", strlen(argv[0]))) {
+      if(argc < 4) {
+        Tcl_AppendResult(interp, "usage: constraint loc_ext_field_plate center <x> <y> <z>", (char *) NULL);
+	return (TCL_ERROR);
+      }
+      if (Tcl_GetDouble(interp, argv[1], &(con->c.lefield_plate.pos[0])) == TCL_ERROR ||
+	  Tcl_GetDouble(interp, argv[2], &(con->c.lefield_plate.pos[1])) == TCL_ERROR ||
+	  Tcl_GetDouble(interp, argv[3], &(con->c.lefield_plate.pos[2])) == TCL_ERROR)
+	return (TCL_ERROR);
+      argc -= 4; argv += 4;
+    }
+    else
+      break;
+  }
+
+  int error = 0;
+  if (con->c.lefield_plate.size < 0.) {
+    Tcl_AppendResult(interp, "Error in contraint loc_ext_field_plate: size must be > 0.", (char *) NULL);
+    error = 1;
+  }
+  for(i=0; i<3; i++){
+    if (con->c.lefield_plate.pos[i] < 0.)  {
+      Tcl_AppendResult(interp, "Error in contraint loc_ext_field_plate: center position must be > 0.", (char *) NULL);
+      error = 1;
+    }
+  }
+
+  if (error)
+    return (TCL_ERROR);
+
+  return (TCL_OK);
+}
+
 static int tclcommand_constraint_parse_plane_cell(Constraint *con, Tcl_Interp *interp,
                       int argc, char **argv)
 {
@@ -1915,6 +1992,10 @@ int tclcommand_constraint(ClientData _data, Tcl_Interp *interp,
     mpi_bcast_constraint(-1);
   }
   //end ER
+  else if(!strncmp(argv[1], "loc_ext_field_plate", strlen(argv[1]))) {
+    status = tclcommand_constraint_parse_loc_ext_field_plate(generate_constraint(), interp, argc - 2, argv + 2);
+    mpi_bcast_constraint(-1);
+  }
   else if(!strncmp(argv[1], "force", strlen(argv[1]))) {
     if(argc < 3) {
       Tcl_AppendResult(interp, "which particles force?",(char *) NULL);

@@ -193,6 +193,8 @@ enum ConstraintApplied{
 /** External magnetic field constraint applied */
     CONSTRAINT_EXT_MAGN_FIELD,
 //end ER
+/** Local external field produced by a charged plate applied */
+    CONSTRAINT_LOC_EXT_FIELD_PLATE,
 /** Constraint for tunable-lsip boundary conditions */
     CONSTRAINT_PLANE,
 /** Constraint for tunable-lsip boundary conditions */
@@ -1034,6 +1036,16 @@ typedef struct{
 } Constraint_ext_magn_field;
 //end ER
 
+/** Parameters for a LOCAL EXTERNAL FIELD produced by a charged PLATE constraint */
+typedef struct{
+  /** surface charge density. Only makes sense if the y-axis is periodically replicated. */
+  double sigma;
+  /** size of the plate in the x-direction */
+  double size;
+  /** center of plate. The y-coordinate is irrelevent. */
+  double pos[3];
+} Constraint_loc_ext_field_plate;
+
 /** Parameters for a plane constraint which is needed for tunable-slip boundary conditions. */
 typedef struct {
   /** Position of the plain. Negative values mean non-existing in that direction. */
@@ -1066,6 +1078,7 @@ typedef struct {
     //ER
     Constraint_ext_magn_field emfield;
     //end ER
+    Constraint_loc_ext_field_plate lefield_plate;
     Constraint_plane plane;
   } c;
 
