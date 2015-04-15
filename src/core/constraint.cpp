@@ -2925,7 +2925,20 @@ double add_constraints_energy(Particle *p1)
       break;
   case CONSTRAINT_SLITPORE:
     {
-        if (warnings) fprintf(stderr, "WARNING: energy calculated, but PLANE energy not implemented\n");
+        if (warnings) fprintf(stderr, "WARNING: energy calculated, but SLITPORE energy not implemented\n");
+    }
+      break;
+  case CONSTRAINT_OPENSLIT:
+    if(checkIfInteraction(ia_params)) {
+	    calculate_openslit_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.openslit, &dist, vec); 
+	      if (dist >= 0) {
+          nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep, 
+            ia_params, vec, dist, dist*dist);
+	      } else {
+            ostringstream msg;
+            msg <<"openslit constraint " << n << " violated by particle  "<< p1->p.identity;
+            runtimeError(msg);
+        }
     }
       break;
   case CONSTRAINT_NONE:
