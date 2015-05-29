@@ -2910,6 +2910,7 @@ double add_constraints_energy(Particle *p1)
       break;
     case CONSTRAINT_EXT_MAGN_FIELD:
       magnetic_en = ext_magn_field_energy(p1, &constraints[n].c.emfield);
+      break;
     
     case CONSTRAINT_LOC_EXT_FIELD:
       //printf("energy of: part %d pos: %f %f %f. \n", p1->p.identity, folded_pos[0], folded_pos[1], folded_pos[2]); 
