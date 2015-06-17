@@ -76,6 +76,10 @@ void calculate_slitpore_dist(Particle *p1, double ppos[3],
 			 Particle *c_p, Constraint_slitpore *c, 
 			 double *dist, double *vec);
 
+void calculate_openslit_dist(Particle *p1, double ppos[3], 
+			 Particle *c_p, Constraint_openslit *c, 
+			 double *dist, double *vec);
+
 void calculate_plane_dist(Particle *p1, double ppos[3], 
 			  Particle *c_p, Constraint_plane *c, 
 			  double *dist, double *vec);
@@ -110,6 +114,12 @@ void add_loc_ext_field_plate_force(Particle *p1, double ppos[3],
 
 double loc_ext_field_plate_energy(Particle *p1, double ppos[3],  
 			     Constraint_loc_ext_field_plate *c);
+
+void add_loc_ext_field_force(Particle *p1, double ppos[3],  
+			      Constraint_loc_ext_field *c);
+
+double loc_ext_field_energy(Particle *p1, double ppos[3],  
+			     Constraint_loc_ext_field *c);
 
 void reflect_particle(Particle *p1, double *distance_vec, 
 		      int reflecting);

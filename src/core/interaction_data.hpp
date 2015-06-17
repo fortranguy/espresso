@@ -195,6 +195,8 @@ enum ConstraintApplied{
 //end ER
 /** Local external field produced by a charged plate applied */
     CONSTRAINT_LOC_EXT_FIELD_PLATE,
+/** Local external magnetic field constraint applied */
+    CONSTRAINT_LOC_EXT_FIELD,
 /** Constraint for tunable-lsip boundary conditions */
     CONSTRAINT_PLANE,
 /** Constraint for tunable-lsip boundary conditions */
@@ -203,6 +205,8 @@ enum ConstraintApplied{
     CONSTRAINT_STOMATOCYTE,
 /** slitpore constraint applied */
     CONSTRAINT_SLITPORE,
+/** open_openslit constraint applied */
+    CONSTRAINT_OPENSLIT,
 /** Constraint for a hollow cone boundary */
     CONSTRAINT_HOLLOW_CONE,
 /** Constraint for spherocylinder boundary */
@@ -926,6 +930,19 @@ typedef struct {
   int reflecting;
 } Constraint_slitpore;
 
+/** Parameters for a OPENSLIT constraint. */
+typedef struct {
+  /** pore dimentions. **/
+  double slit_width;
+  double slit_length;
+  /** reservoir dimentions. */
+  double bulk_width;
+  /** smoothing radii at pore and resrvoir edges. */
+  double inner_smoothing_radius;
+  double outer_smoothing_radius;
+  int reflecting;
+} Constraint_openslit;
+
 /** Parameters for a ROD constraint. */
 typedef struct {
   /** center of the cylinder in the x-y plane. */
@@ -1046,6 +1063,15 @@ typedef struct{
   double pos[3];
 } Constraint_loc_ext_field_plate;
 
+/** Parameters for a LOCAL EXTERNAL FIELD constraint */
+typedef struct{
+  /** vector (direction and magnitude) of the external magnetic field */
+  double loc_ext_field[3];
+  /** minimum and maximum positions in each dimention between which the field is applied */
+  double pmin[3];
+  double pmax[3];
+} Constraint_loc_ext_field;
+
 /** Parameters for a plane constraint which is needed for tunable-slip boundary conditions. */
 typedef struct {
   /** Position of the plain. Negative values mean non-existing in that direction. */
@@ -1073,12 +1099,14 @@ typedef struct {
     Constraint_maze maze;
     Constraint_pore pore;
     Constraint_slitpore slitpore;
+    Constraint_openslit openslit;
     Constraint_stomatocyte stomatocyte;
     Constraint_hollow_cone hollow_cone;
     //ER
     Constraint_ext_magn_field emfield;
     //end ER
     Constraint_loc_ext_field_plate lefield_plate;
+    Constraint_loc_ext_field lefield;
     Constraint_plane plane;
   } c;
 
