@@ -42,19 +42,6 @@ double dpd_tr_cut = 0.0;
 int dpd_twf = 0;
 
 #ifdef DPD
-/* inverse off DPD thermostat cutoff */
-double dpd_r_cut_inv = 0.0;
-double dpd_pref1;
-double dpd_pref2;
-static double dpd_pref2_buffer;
-
-#ifdef TRANS_DPD 
-/* inverse off trans DPD thermostat cutoff */
-double dpd_tr_cut_inv = 0.0;
-double dpd_pref3;
-double dpd_pref4;
-static double dpd_pref4_buffer;
-#endif
 
 /** Chatterjee 2007 proposes that for DPD with Lees Edwards BCs,
  *  it is better not to count interactions with Ghost particles. */
@@ -71,6 +58,20 @@ static bool le_chatterjee_test_pair(Particle *p1, Particle *p2){
 #endif
     return false;
 }
+
+/* inverse off DPD thermostat cutoff */
+double dpd_r_cut_inv = 0.0;
+double dpd_pref1;
+double dpd_pref2;
+static double dpd_pref2_buffer;
+
+#ifdef TRANS_DPD 
+/* inverse off trans DPD thermostat cutoff */
+double dpd_tr_cut_inv = 0.0;
+double dpd_pref3;
+double dpd_pref4;
+static double dpd_pref4_buffer;
+#endif
 
 void dpd_switch_off()
 {
@@ -392,6 +393,10 @@ void add_inter_dpd_pair_force(Particle *p1, Particle *p2, IA_parameters *ia_para
 #endif
 
 #ifdef EXTERNAL_FORCES
+  // Prohibits calculation of velocity dependent
+  // force between two fixed particles.
+  if (p1->p.ext_flag & p2->p.ext_flag & COORDS_FIX_MASK) 
+    return;
   // if any of the two particles is fixed in some direction then
   // do not add any dissipative or stochastic dpd force part
   // because dissipation-fluctuation theorem is violated
@@ -399,8 +404,9 @@ void add_inter_dpd_pair_force(Particle *p1, Particle *p2, IA_parameters *ia_para
     if ( (p1->p.ext_flag | p2->p.ext_flag) & COORDS_FIX_MASK) return;
 #endif
 
+#ifdef DPD
   if( le_chatterjee_test_pair(p1, p2) ) return;
-  
+#endif  
 #ifdef DPD_MASS_RED
   massf=2*PMASS(*p1)*PMASS(*p2)/(PMASS(*p1)+PMASS(*p2));
 #endif
