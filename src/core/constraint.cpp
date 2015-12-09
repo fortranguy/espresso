@@ -2309,13 +2309,13 @@ double ext_magn_field_energy(Particle *p1, Constraint_ext_magn_field *c)
 void loc_ext_field_plate_set_field(double field[3], double sigma, double size, double x, double z)
 {
   double x_p, x_m;
-  
+
   x_p = x + size/2.;
   x_m = x - size/2.;
-  
-  field[0] = sigma * log((x_p*x_p + z*z) / (x_m*x_m + z*z));
+
+  field[0] = coulomb.Dprefactor * sigma * log((x_p*x_p + z*z) / (x_m*x_m + z*z));
   field[1] = 0.;
-  field[2] = sigma* 2.*(atan(x_p/z) - atan(x_m/z));
+  field[2] = coulomb.Dprefactor * sigma * 2.*(atan(x_p/z) - atan(x_m/z));
 }
 
 void add_loc_ext_field_plate_force(Particle *p1, double ppos[3], Constraint_loc_ext_field_plate *c)
@@ -3364,4 +3364,3 @@ void calculate_openslit_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
 }
 #endif
-
