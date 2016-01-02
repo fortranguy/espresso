@@ -1,26 +1,26 @@
 /*
   Copyright (C) 2010,2011,2012,2013,2014 The ESPResSo project
-  Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009,2010 
+  Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009,2010
     Max-Planck-Institute for Polymer Research, Theory Group
-  
+
   This file is part of ESPResSo.
-  
+
   ESPResSo is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   ESPResSo is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef _THERMOSTAT_H
 #define _THERMOSTAT_H
-/** \file thermostat.hpp 
+/** \file thermostat.hpp
 
 */
 
@@ -59,9 +59,9 @@
 #if defined (FLATNOISE)
   #define noise (d_random() -0.5)
 #elif defined (GAUSSRANDOMCUT)
-  #define noise gauss_random_cut()
+  #define noise gaussian_random_cut()
 #elif defined (GAUSSRANDOM)
-  #define noise gauss_random()
+  #define noise gaussian_random()
 #else
  #error "No noise function defined"
 #endif
@@ -151,21 +151,21 @@ inline double le_frameV(int i, double *vel, double *pos)
 }
 
 #ifdef NPT
-/** add velocity-dependend noise and friction for NpT-sims to the particle's velocity 
-    @param dt_vj  j-component of the velocity scaled by time_step dt 
+/** add velocity-dependend noise and friction for NpT-sims to the particle's velocity
+    @param dt_vj  j-component of the velocity scaled by time_step dt
     @return       j-component of the noise added to the velocity, also scaled by dt (contained in prefactors) */
 inline double friction_therm0_nptiso(double dt_vj) {
   extern double nptiso_pref1, nptiso_pref2;
   if(thermo_switch & THERMO_NPT_ISO)
     return ( nptiso_pref1*dt_vj + nptiso_pref2*noise );
-  
+
   return 0.0;
 }
 
 /** add p_diff-dependend noise and friction for NpT-sims to \ref nptiso_struct::p_diff */
 inline double friction_thermV_nptiso(double p_diff) {
   extern double nptiso_pref3, nptiso_pref4;
-  if(thermo_switch & THERMO_NPT_ISO)   
+  if(thermo_switch & THERMO_NPT_ISO)
     return ( nptiso_pref3*p_diff + nptiso_pref4*noise );
   return 0.0;
 }
@@ -177,7 +177,7 @@ inline double friction_thermV_nptiso(double p_diff) {
 inline void friction_thermo_langevin(Particle *p)
 {
   extern double langevin_pref1, langevin_pref2;
-  
+
   double langevin_pref1_temp, langevin_pref2_temp;
 
 #ifdef MULTI_TIMESTEP
@@ -197,12 +197,12 @@ inline void friction_thermo_langevin(Particle *p)
   // Virtual sites related decision making
 #ifdef VIRTUAL_SITES
 #ifndef VIRTUAL_SITES_THERMOSTAT
-      // In this case, virtual sites are NOT thermostated 
+      // In this case, virtual sites are NOT thermostated
   if (ifParticleIsVirtual(p))
     {
       for (j=0;j<3;j++)
         p->f.f[j]=0;
-  
+
       return;
     }
 #endif /* VIRTUAL_SITES_THERMOSTAT */
@@ -212,7 +212,7 @@ inline void friction_thermo_langevin(Particle *p)
     {
       for (j=0;j<3;j++)
         p->f.f[j]=0;
-  
+
       return;
     }
 #endif /* THERMOSTAT_IGNORE_NON_VIRTUAL */
@@ -233,17 +233,17 @@ inline void friction_thermo_langevin(Particle *p)
     // Local effective velocity for leeds-edwards boundary conditions
     velocity[i]=le_frameV(i,velocity,p->r.p);
   } // for
-  
-  // Determine prefactors for the friction and the noise term 
+
+  // Determine prefactors for the friction and the noise term
 
   // first, set defaults
   langevin_pref1_temp = langevin_pref1;
   langevin_pref2_temp = langevin_pref2;
 
-  // Override defaults if per-particle values for T and gamma are given 
-#ifdef LANGEVIN_PER_PARTICLE  
+  // Override defaults if per-particle values for T and gamma are given
+#ifdef LANGEVIN_PER_PARTICLE
     // If a particle-specific gamma is given
-    if(p->p.gamma >= 0.) 
+    if(p->p.gamma >= 0.)
     {
       langevin_pref1_temp = -p->p.gamma/time_step;
       // Is a particle-specific temperature also specified?
@@ -254,7 +254,7 @@ inline void friction_thermo_langevin(Particle *p)
         langevin_pref2_temp = sqrt(24.0*temperature*p->p.gamma/time_step);
 
     } // particle specific gamma
-    else 
+    else
     {
       langevin_pref1_temp = -langevin_gamma/time_step;
       // No particle-specific gamma, but is there particle-specific temperature
@@ -271,7 +271,7 @@ inline void friction_thermo_langevin(Particle *p)
   #ifdef MULTI_TIMESTEP
     if (smaller_time_step > 0.) {
       langevin_pref1_temp *= time_step/smaller_time_step;
-      if (p->p.smaller_timestep==1 && current_time_step_is_small==1) 
+      if (p->p.smaller_timestep==1 && current_time_step_is_small==1)
         langevin_pref2_temp *= sqrt(time_step/smaller_time_step);
       else if (p->p.smaller_timestep != current_time_step_is_small) {
         langevin_pref1_temp  = 0.;
@@ -280,15 +280,15 @@ inline void friction_thermo_langevin(Particle *p)
     }
 #endif /* MULTI_TIMESTEP */
 
-  
+
   // Do the actual thermostatting
-  for ( j = 0 ; j < 3 ; j++) 
+  for ( j = 0 ; j < 3 ; j++)
   {
     #ifdef EXTERNAL_FORCES
       // If individual coordinates are fixed, set force to 0.
       if ((p->p.ext_flag & COORD_FIXED(j)))
         p->f.f[j] = 0;
-      else	
+      else
     #endif
     {
       // Apply the force
@@ -325,7 +325,7 @@ inline void friction_thermo_langevin_rotation(Particle *p)
 
 
   // Here the thermostats happens
-  for ( j = 0 ; j < 3 ; j++) 
+  for ( j = 0 ; j < 3 ; j++)
   {
 #ifdef ROTATIONAL_INERTIA
     p->f.torque[j] = -langevin_gamma_rotation*p->m.omega[j] + switch_rotate*langevin_pref2_rotation*noise;

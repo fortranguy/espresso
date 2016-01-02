@@ -1,27 +1,27 @@
 /*
   Copyright (C) 2010,2012,2013,2014 The ESPResSo project
-  Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009,2010 
+  Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009,2010
     Max-Planck-Institute for Polymer Research, Theory Group
-  
+
   This file is part of ESPResSo.
-  
+
   ESPResSo is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   ESPResSo is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef RANDOM_H
 #define RANDOM_H
 
-/** \file random.hpp 
+/** \file random.hpp
 
     A random generator
 */
@@ -80,12 +80,12 @@ RandomStatus  print_random_stat(void);
 /** classical RAN1 random number generator */
 inline long l_random(void)
 {
-  /* 
+  /*
    *    N O T E   T H A T   T H E R E   A R E   N O   S A F E T Y   C H E C K S  !!!
    */
   int    j;
   long   k;
-  
+
   k = (idum) / IQ;
   idum = IA * (idum - k * IQ) - IR * k;
   if (idum < 0) idum += IM;
@@ -103,7 +103,7 @@ inline int i_random(int maxint)
   temp =  (int)( ( (double) maxint * l_random() )* AM );
   return temp;
 }
-  
+
 
 /*----------------------------------------------------------------------*/
 
@@ -112,7 +112,7 @@ inline double d_random(void)
   /* delivers a uniform double between 0 and 1 */
   double temp;
   iy = l_random();
-  if ((temp = AM * iy) > RNMX) 
+  if ((temp = AM * iy) > RNMX)
     temp = RNMX;
   return temp;
 }
@@ -139,7 +139,7 @@ inline double gaussian_random(void) {
   if (calc_new) {
 
     /* draw two uniform random numbers in the unit circle */
-    do {      
+    do {
       x1 = 2.0*d_random()-1.0;
       x2 = 2.0*d_random()-1.0;
       r2 = x1*x1 + x2*x2;
@@ -168,7 +168,7 @@ inline double gaussian_random(void) {
 
 /** Generator for Gaussian random numbers. Uses the Box-Muller
  * transformation to generate two Gaussian random numbers from two
- * uniform random numbers. which generates numbers between -2 sigma and 2 sigma in the form of a Gaussian with standard deviation sigma=1.118591404 resulting in 
+ * uniform random numbers. which generates numbers between -2 sigma and 2 sigma in the form of a Gaussian with standard deviation sigma=1.118591404 resulting in
  * an actual standard deviation of 1.
  *
  * @return Gaussian random number.
@@ -187,7 +187,7 @@ inline double gaussian_random_cut(void) {
   if (calc_new) {
 
     /* draw two uniform random numbers in the unit circle */
-    do {      
+    do {
       x1 = 2.0*d_random()-1.0;
       x2 = 2.0*d_random()-1.0;
       r2 = x1*x1 + x2*x2;
@@ -196,7 +196,7 @@ inline double gaussian_random_cut(void) {
     /* perform Box-Muller transformation */
     fac = sqrt(-2.0*log(r2)/r2);
 
-    // save one number for later use 
+    // save one number for later use
     save = x1*fac*1.042267973;
     if ( fabs(save) > 2*1.042267973 ) {
       if ( save > 0 ) save = 2*1.042267973;
@@ -204,14 +204,14 @@ inline double gaussian_random_cut(void) {
     }
     calc_new = 0;
 
-    // return the second number 
+    // return the second number
     curr = x2*fac*1.042267973;
     if ( fabs(curr) > 2*1.042267973) {
       if ( curr > 0 ) curr = 2*1.042267973;
       else curr = -2*1.042267973;
     }
     return curr;
-    
+
     /* save one number for later use */
     /*
     save = x1*fac*1.118591404;
@@ -220,7 +220,7 @@ inline double gaussian_random_cut(void) {
     }
     calc_new = 0;
 
-    // return the second number 
+    // return the second number
     curr = x2*fac*1.118591404;
     if ( fabs(curr) > 2*1.118591404) {
       curr = (2.0*d_random()-1.0)*2*1.118591404;
@@ -261,9 +261,3 @@ BitRandomStatus print_bit_random_stat(void);
 /*----------------------------------------------------------*/
 
 #endif
-
-
-
-
-
-
