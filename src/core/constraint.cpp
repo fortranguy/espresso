@@ -1,22 +1,22 @@
 /*
   Copyright (C) 2010,2011,2012,2013,2014 The ESPResSo project
-  Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009,2010 
+  Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009,2010
     Max-Planck-Institute for Polymer Research, Theory Group
-  
+
   This file is part of ESPResSo.
-  
+
   ESPResSo is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   ESPResSo is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /** \file constraint.cpp
     Implementation of \ref constraint.hpp "constraint.hpp", here it's just the parsing stuff.
@@ -45,14 +45,14 @@ Constraint *generate_constraint()
   memset(&constraints[n_constraints-1], 0, sizeof(Constraint));
   constraints[n_constraints-1].type = CONSTRAINT_NONE;
   constraints[n_constraints-1].part_rep.p.identity = -n_constraints;
-   
+
   return &constraints[n_constraints-1];
 }
 
 void init_constraint_forces()
 {
   int n, i;
-  
+
   for (n = 0; n < n_constraints; n++)
     for (i = 0; i < 3; i++)
       constraints[n].part_rep.f.f[i] = 0;
@@ -72,9 +72,9 @@ void calculate_wall_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
 
   *dist = -c->d;
   for(i=0;i<3;i++) *dist += ppos[i]*c->n[i];
-  
+
   for(i=0;i<3;i++) vec[i] = c->n[i] * *dist;
-  
+
 }
 
 
@@ -89,7 +89,7 @@ void calculate_sphere_dist(Particle *p1, double ppos[3], Particle *c_p, Constrai
     c_dist += SQR(vec[i]);
   }
   c_dist = sqrt(c_dist);
-  
+
   if ( c->direction == -1 ) {
   /* apply force towards inside the sphere */
     *dist = c->rad - c_dist;
@@ -125,12 +125,12 @@ void calculate_maze_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
   fac = sph_dist / c_dist;
   for(i=0;i<3;i++) cyl_vec[i] = sph_vec[i];
   for(i=0;i<3;i++) sph_vec[i] *= fac;
-  
+
   /* Now calculate the cylinder stuff */
   /* have to check all 3 cylinders */
   min_axis=2;
   cyl_dist=sqrt(cyl_vec[0]*cyl_vec[0]+cyl_vec[1]*cyl_vec[1]);
-  
+
   if(dim > 0 ){
     temp_dis=sqrt(cyl_vec[0]*cyl_vec[0]+cyl_vec[2]*cyl_vec[2]);
     if ( temp_dis < cyl_dist) {
@@ -147,12 +147,12 @@ void calculate_maze_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
     }
   }
   cyl_vec[min_axis]=0.;
-  
+
   c_dist=cyl_dist;
   cyl_dist = c->cylrad - c_dist;
   fac = cyl_dist / c_dist;
   for(i=0;i<3;i++) cyl_vec[i] *= fac;
-  
+
   /* Now decide between cylinder and sphere */
   if ( sph_dist > 0 ) {
     if ( sph_dist>cyl_dist ) {
@@ -160,11 +160,11 @@ void calculate_maze_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
         for(i=0;i<3;i++) vec[i] = sph_vec[i];
     } else {
         *dist = cyl_dist;
-        for(i=0;i<3;i++) vec[i] = cyl_vec[i];  
+        for(i=0;i<3;i++) vec[i] = cyl_vec[i];
     }
   } else {
     *dist = cyl_dist;
-    for(i=0;i<3;i++) vec[i] = cyl_vec[i];  
+    for(i=0;i<3;i++) vec[i] = cyl_vec[i];
   }
 }
 
@@ -179,17 +179,17 @@ void calculate_cylinder_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
     d_real += SQR(d_real_vec[i]);
   }
   d_real = sqrt(d_real);
-    
+
   d_par=0.;
   for(i=0;i<3;i++) {
     d_par += (d_real_vec[i] * c->axis[i]);
   }
-    
+
   for(i=0;i<3;i++) {
     d_par_vec[i] = d_par * c->axis[i] ;
     d_per_vec[i] = ppos[i] - (c->pos[i] + d_par_vec[i]) ;
   }
-		
+
   d_per=sqrt(SQR(d_real)-SQR(d_par));
   d_par = fabs(d_par) ;
 
@@ -198,7 +198,7 @@ void calculate_cylinder_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
     d_per = c->rad - d_per ;
     d_par = c->length - d_par;
     if (d_per < d_par )  {
-      *dist = d_per ;   
+      *dist = d_per ;
       for (i=0; i<3;i++) {
 	vec[i]= -d_per_vec[i] * d_per /  (c->rad - d_per) ;
       }
@@ -213,7 +213,7 @@ void calculate_cylinder_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
     d_per = d_per - c->rad ;
     d_par = d_par - c->length ;
     if (d_par < 0 )  {
-      *dist = d_per ;   
+      *dist = d_per ;
       for (i=0; i<3;i++) {
 	vec[i]= d_per_vec[i] * d_per /  (d_per + c->rad) ;
       }
@@ -228,7 +228,7 @@ void calculate_cylinder_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 	vec[i]=
 	  d_per_vec[i] * d_per /  (d_per + c->rad) +
 	  d_par_vec[i] * d_par /  (d_par + c->length) ;
-      }	
+      }
     }
   }
 }
@@ -246,18 +246,18 @@ void calculate_spherocylinder_dist(Particle *p1, double ppos[3], Particle *c_p, 
 
   if(abs(d) >= c->length) {
     *dist = 0.0;
-    
+
     for(i = 0; i < 3; i++) {
       vec[i] = ppos_local[i] - c->length * c->axis[i] * sign(d);
       *dist += vec[i]*vec[i];
     }
 
     *dist = sqrt(*dist);
-    
+
     if(*dist != 0.0)
       for(i = 0; i < 3; i++)
         vec[i] /= *dist;
-    
+
     *dist -= c->rad;
 
     for(i = 0; i < 3; i++)
@@ -270,59 +270,59 @@ void calculate_spherocylinder_dist(Particle *p1, double ppos[3], Particle *c_p, 
 }
 
 void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint_rhomboid *c, double *dist, double *vec)
-{	
+{
 	double axb[3], bxc[3], axc[3];
 	double A, B, C;
 	double a_dot_bxc, b_dot_axc, c_dot_axb;
 	double tmp;
 	double d;
-	
+
 	//calculate a couple of vectors and scalars that are going to be used frequently
-	
+
 	axb[0] = c->a[1]*c->b[2] - c->a[2]*c->b[1];
 	axb[1] = c->a[2]*c->b[0] - c->a[0]*c->b[2];
 	axb[2] = c->a[0]*c->b[1] - c->a[1]*c->b[0];
-	
+
 	bxc[0] = c->b[1]*c->c[2] - c->b[2]*c->c[1];
 	bxc[1] = c->b[2]*c->c[0] - c->b[0]*c->c[2];
 	bxc[2] = c->b[0]*c->c[1] - c->b[1]*c->c[0];
-	
+
 	axc[0] = c->a[1]*c->c[2] - c->a[2]*c->c[1];
 	axc[1] = c->a[2]*c->c[0] - c->a[0]*c->c[2];
 	axc[2] = c->a[0]*c->c[1] - c->a[1]*c->c[0];
-	
+
 	a_dot_bxc = c->a[0]*bxc[0] + c->a[1]*bxc[1] + c->a[2]*bxc[2];
 	b_dot_axc = c->b[0]*axc[0] + c->b[1]*axc[1] + c->b[2]*axc[2];
 	c_dot_axb = c->c[0]*axb[0] + c->c[1]*axb[1] + c->c[2]*axb[2];
-	
+
 	//represent the distance from pos to ppos as a linear combination of the edge vectors.
-	
+
 	A = (ppos[0]-c->pos[0])*bxc[0] + (ppos[1]-c->pos[1])*bxc[1] + (ppos[2]-c->pos[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0])*axc[0] + (ppos[1]-c->pos[1])*axc[1] + (ppos[2]-c->pos[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0])*axb[0] + (ppos[1]-c->pos[1])*axb[1] + (ppos[2]-c->pos[2])*axb[2];
 	C /= c_dot_axb;
-	
+
 	//the coefficients tell whether ppos lies within the cone defined by pos and the adjacent edges
-	
+
 	if(A <= 0 && B <= 0 && C <= 0)
 	{
 		vec[0] = ppos[0]-c->pos[0];
 		vec[1] = ppos[1]-c->pos[1];
 		vec[2] = ppos[2]-c->pos[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-		
+
 	  return;
 	}
-	
+
 	//check for cone at pos+a
 
 	A = (ppos[0]-c->pos[0]-c->a[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0]-c->a[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->a[0])*axb[0] + (ppos[1]-c->pos[1]-c->a[1])*axb[1] + (ppos[2]-c->pos[2]-c->a[2])*axb[2];
 	C /= c_dot_axb;
 
@@ -331,18 +331,18 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = ppos[0]-c->pos[0]-c->a[0];
 		vec[1] = ppos[1]-c->pos[1]-c->a[1];
 		vec[2] = ppos[2]-c->pos[2]-c->a[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-		
+
 	  return;
 	}
-	
+
 	//check for cone at pos+b
 
 	A = (ppos[0]-c->pos[0]-c->b[0])*bxc[0] + (ppos[1]-c->pos[1]-c->b[1])*bxc[1] + (ppos[2]-c->pos[2]-c->b[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0]-c->b[0])*axc[0] + (ppos[1]-c->pos[1]-c->b[1])*axc[1] + (ppos[2]-c->pos[2]-c->b[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->b[0])*axb[0] + (ppos[1]-c->pos[1]-c->b[1])*axb[1] + (ppos[2]-c->pos[2]-c->b[2])*axb[2];
 	C /= c_dot_axb;
 
@@ -351,18 +351,18 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = ppos[0]-c->pos[0]-c->b[0];
 		vec[1] = ppos[1]-c->pos[1]-c->b[1];
 		vec[2] = ppos[2]-c->pos[2]-c->b[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-		
+
 		return;
 	}
-	
+
 	//check for cone at pos+c
 
 	A = (ppos[0]-c->pos[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->c[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->c[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->c[0])*axb[0] + (ppos[1]-c->pos[1]-c->c[1])*axb[1] + (ppos[2]-c->pos[2]-c->c[2])*axb[2];
 	C /= c_dot_axb;
 
@@ -371,18 +371,18 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = ppos[0]-c->pos[0]-c->c[0];
 		vec[1] = ppos[1]-c->pos[1]-c->c[1];
 		vec[2] = ppos[2]-c->pos[2]-c->c[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-	
+
 	  return;
 	}
-	
+
 	//check for cone at pos+a+b
 
 	A = (ppos[0]-c->pos[0]-c->a[0]-c->b[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0]-c->a[0]-c->b[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->a[0]-c->b[0])*axb[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1])*axb[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2])*axb[2];
 	C /= c_dot_axb;
 
@@ -391,18 +391,18 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = ppos[0]-c->pos[0]-c->a[0]-c->b[0];
 		vec[1] = ppos[1]-c->pos[1]-c->a[1]-c->b[1];
 		vec[2] = ppos[2]-c->pos[2]-c->a[2]-c->b[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
     return;
 	}
-	
+
 	//check for cone at pos+a+c
 
 	A = (ppos[0]-c->pos[0]-c->a[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->c[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0]-c->a[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->c[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->a[0]-c->c[0])*axb[0] + (ppos[1]-c->pos[1]-c->a[1]-c->c[1])*axb[1] + (ppos[2]-c->pos[2]-c->a[2]-c->c[2])*axb[2];
 	C /= c_dot_axb;
 
@@ -411,18 +411,18 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = ppos[0]-c->pos[0]-c->a[0]-c->c[0];
 		vec[1] = ppos[1]-c->pos[1]-c->a[1]-c->c[1];
 		vec[2] = ppos[2]-c->pos[2]-c->a[2]-c->c[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
     return;
 	}
-	
+
 	//check for cone at pos+a+c
 
 	A = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*axb[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*axb[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*axb[2];
 	C /= c_dot_axb;
 
@@ -431,18 +431,18 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = ppos[0]-c->pos[0]-c->b[0]-c->c[0];
 		vec[1] = ppos[1]-c->pos[1]-c->b[1]-c->c[1];
 		vec[2] = ppos[2]-c->pos[2]-c->b[2]-c->c[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
     return;
 	}
-	
+
 	//check for cone at pos+a+b+c
 
 	A = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*bxc[2];
-	A /= a_dot_bxc;	
+	A /= a_dot_bxc;
 	B = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*axc[2];
-	B /= b_dot_axc;	
+	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*axb[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*axb[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*axb[2];
 	C /= c_dot_axb;
 
@@ -451,33 +451,33 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0];
 		vec[1] = ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1];
 		vec[2] = ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2];
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
     return;
 	}
-	
+
 	//check for prism at edge pos, a
-	
+
 	B = (ppos[0]-c->pos[0])*axc[0] + (ppos[1]-c->pos[1])*axc[1] + (ppos[2]-c->pos[2])*axc[2];
 	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0])*axb[0] + (ppos[1]-c->pos[1])*axb[1] + (ppos[2]-c->pos[2])*axb[2];
 	C /= c_dot_axb;
-	
+
 	if(B <= 0 && C <= 0)
 	{
 		tmp = (ppos[0]-c->pos[0])*c->a[0] + (ppos[1]-c->pos[1])*c->a[1] + (ppos[2]-c->pos[2])*c->a[2];
 		tmp /= c->a[0]*c->a[0] + c->a[1]*c->a[1] + c->a[2]*c->a[2];
-		
+
 		vec[0] = ppos[0]-c->pos[0] - c->a[0]*tmp;
 		vec[1] = ppos[1]-c->pos[1] - c->a[1]*tmp;
 		vec[2] = ppos[2]-c->pos[2] - c->a[2]*tmp;
-		
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-		
+
     return;
 	}
-	
+
 	//check for prism at edge pos, b
 
 	A = (ppos[0]-c->pos[0])*bxc[0] + (ppos[1]-c->pos[1])*bxc[1] + (ppos[2]-c->pos[2])*bxc[2];
@@ -489,16 +489,16 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 	{
 		tmp = (ppos[0]-c->pos[0])*c->b[0] + (ppos[1]-c->pos[1])*c->b[1] + (ppos[2]-c->pos[2])*c->b[2];
 		tmp /= c->b[0]*c->b[0] + c->b[1]*c->b[1] + c->b[2]*c->b[2];
-	
+
 		vec[0] = ppos[0]-c->pos[0] - c->b[0]*tmp;
 		vec[1] = ppos[1]-c->pos[1] - c->b[1]*tmp;
 		vec[2] = ppos[2]-c->pos[2] - c->b[2]*tmp;
-	
+
 		*dist = c->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-	
+
     return;
 	}
-	
+
 	//check for prism at edge pos, c
 
 	A = (ppos[0]-c->pos[0])*bxc[0] + (ppos[1]-c->pos[1])*bxc[1] + (ppos[2]-c->pos[2])*bxc[2];
@@ -519,7 +519,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+a, b
 
 	A = (ppos[0]-c->pos[0]-c->a[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2])*bxc[2];
@@ -540,7 +540,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+a, c
 
 	A = (ppos[0]-c->pos[0]-c->a[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2])*bxc[2];
@@ -561,7 +561,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+b+c, c
 
 	A = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*bxc[2];
@@ -582,7 +582,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+b+c, b
 
 	A = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*bxc[2];
@@ -603,14 +603,14 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+b+c, a
 
 	B = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*axc[2];
 	B /= b_dot_axc;
 	C = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*axb[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*axb[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*axb[2];
 	C /= c_dot_axb;
-																
+
 	if(B >= 0 && C >= 0)
 	{
 		tmp = (ppos[0]-c->pos[0]-c->b[0]-c->c[0])*c->a[0] + (ppos[1]-c->pos[1]-c->b[1]-c->c[1])*c->a[1] + (ppos[2]-c->pos[2]-c->b[2]-c->c[2])*c->a[2];
@@ -624,7 +624,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+a+b, a
 
 	B = (ppos[0]-c->pos[0]-c->a[0]-c->b[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2])*axc[2];
@@ -645,7 +645,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+a+b, c
 
 	A = (ppos[0]-c->pos[0]-c->a[0]-c->b[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2])*bxc[2];
@@ -666,7 +666,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+a+c, a
 
 	B = (ppos[0]-c->pos[0]-c->a[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->c[2])*axc[2];
@@ -687,7 +687,7 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for prism at edge pos+a+c, b
 
 	A = (ppos[0]-c->pos[0]-c->a[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->c[2])*bxc[2];
@@ -708,35 +708,35 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//check for face with normal -axb
-	
+
 	*dist = (ppos[0]-c->pos[0])*axb[0] + (ppos[1]-c->pos[1])*axb[1] + (ppos[2]-c->pos[2])*axb[2];
 	*dist *= -1.;
-	
+
 	if(*dist >= 0)
 	{
 		tmp = sqrt( axb[0]*axb[0] + axb[1]*axb[1] + axb[2]*axb[2] );
 		*dist /= tmp;
-	
+
 		vec[0] = -*dist * axb[0]/tmp;
 		vec[1] = -*dist * axb[1]/tmp;
 		vec[2] = -*dist * axb[2]/tmp;
-	
+
 		*dist *= c->direction;
 
     return;
 	}
-	
+
 	//calculate distance to face with normal axc
 
 	*dist = (ppos[0]-c->pos[0])*axc[0] + (ppos[1]-c->pos[1])*axc[1] + (ppos[2]-c->pos[2])*axc[2];
-	
+
 	if(*dist >= 0)
 	{
 		tmp = sqrt( axc[0]*axc[0] + axc[1]*axc[1] + axc[2]*axc[2] );
 		*dist /= tmp;
-	
+
 		vec[0] = *dist * axc[0]/tmp;
 		vec[1] = *dist * axc[1]/tmp;
 		vec[2] = *dist * axc[2]/tmp;
@@ -745,30 +745,30 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 
     return;
 	}
-	
+
 	//calculate distance to face with normal -bxc
 
 	*dist = (ppos[0]-c->pos[0])*bxc[0] + (ppos[1]-c->pos[1])*bxc[1] + (ppos[2]-c->pos[2])*bxc[2];
 	*dist *= -1.;
-	
+
 	if(*dist >= 0)
 	{
 		tmp = sqrt( bxc[0]*bxc[0] + bxc[1]*bxc[1] + bxc[2]*bxc[2] );
 		*dist /= tmp;
-		
+
 		vec[0] = -*dist * bxc[0]/tmp;
 		vec[1] = -*dist * bxc[1]/tmp;
 		vec[2] = -*dist * bxc[2]/tmp;
-		
+
 		*dist *= c->direction;
 
     return;
 	}
-	
+
 	//calculate distance to face with normal axb
-	
+
 	*dist = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*axb[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*axb[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*axb[2];
-	
+
 	if(*dist >= 0)
 	{
 		tmp = sqrt( axb[0]*axb[0] + axb[1]*axb[1] + axb[2]*axb[2] );
@@ -777,17 +777,17 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = *dist * axb[0]/tmp;
 		vec[1] = *dist * axb[1]/tmp;
 		vec[2] = *dist * axb[2]/tmp;
-	
+
 		*dist *= c->direction;
 
     return;
 	}
-																					
+
 	//calculate distance to face with normal -axc
 
 	*dist = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*axc[2];
 	*dist *= -1.;
-	
+
 	if(*dist >= 0)
 	{
 		tmp = sqrt( axc[0]*axc[0] + axc[1]*axc[1] + axc[2]*axc[2] );
@@ -796,16 +796,16 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = -*dist * axc[0]/tmp;
 		vec[1] = -*dist * axc[1]/tmp;
 		vec[2] = -*dist * axc[2]/tmp;
-		
+
 		*dist *= c->direction;
 
     return;
 	}
-																		
+
 	//calculate distance to face with normal bxc
 
 	*dist = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*bxc[2];
-	
+
 	if(*dist >= 0)
 	{
 		tmp = sqrt( bxc[0]*bxc[0] + bxc[1]*bxc[1] + bxc[2]*bxc[2] );
@@ -814,25 +814,25 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 		vec[0] = *dist * bxc[0]/tmp;
 		vec[1] = *dist * bxc[1]/tmp;
 		vec[2] = *dist * bxc[2]/tmp;
-		
+
 		*dist *= c->direction;
 
     return;
 	}
-	
+
 	//ppos lies within rhomboid. Find nearest wall for interaction.
-	 
+
 	//check for face with normal -axb
-	
+
 	*dist = (ppos[0]-c->pos[0])*axb[0] + (ppos[1]-c->pos[1])*axb[1] + (ppos[2]-c->pos[2])*axb[2];
 	*dist *= -1.;
 	tmp = sqrt( axb[0]*axb[0] + axb[1]*axb[1] + axb[2]*axb[2] );
 	*dist /= tmp;
-	
+
 	vec[0] = -*dist * axb[0]/tmp;
 	vec[1] = -*dist * axb[1]/tmp;
 	vec[2] = -*dist * axb[2]/tmp;
-	
+
 	*dist *= c->direction;
 
 	//calculate distance to face with normal axc
@@ -840,13 +840,13 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 	d = (ppos[0]-c->pos[0])*axc[0] + (ppos[1]-c->pos[1])*axc[1] + (ppos[2]-c->pos[2])*axc[2];
 	tmp = sqrt( axc[0]*axc[0] + axc[1]*axc[1] + axc[2]*axc[2] );
 	d /= tmp;
-	
+
 	if(abs(d) < abs(*dist))
 	{
 		vec[0] = d * axc[0]/tmp;
 		vec[1] = d * axc[1]/tmp;
 		vec[2] = d * axc[2]/tmp;
-	
+
 		*dist = c->direction * d;
 	}
 
@@ -858,29 +858,29 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 	d /= tmp;
 
 	if(abs(d) < abs(*dist))
-	{							
+	{
 		vec[0] = -d * bxc[0]/tmp;
 		vec[1] = -d * bxc[1]/tmp;
 		vec[2] = -d * bxc[2]/tmp;
 
 		*dist = c->direction * d;
 	}
-	
+
 	//calculate distance to face with normal axb
 
 	d = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*axb[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*axb[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*axb[2];
 	tmp = sqrt( axb[0]*axb[0] + axb[1]*axb[1] + axb[2]*axb[2] );
 	d /= tmp;
-	
+
 	if(abs(d) < abs(*dist))
-	{																					
+	{
 		vec[0] = d * axb[0]/tmp;
 		vec[1] = d * axb[1]/tmp;
 		vec[2] = d * axb[2]/tmp;
 
 		*dist = c->direction * d;
 	}
-	
+
 	//calculate distance to face with normal -axc
 
 	d = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*axc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*axc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*axc[2];
@@ -889,14 +889,14 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 	d /= tmp;
 
 	if(abs(d) < abs(*dist))
-	{																						
+	{
 		vec[0] = -d * axc[0]/tmp;
 		vec[1] = -d * axc[1]/tmp;
 		vec[2] = -d * axc[2]/tmp;
 
 		*dist = c->direction * d;
 	}
-																		
+
 	//calculate distance to face with normal bxc
 
 	d = (ppos[0]-c->pos[0]-c->a[0]-c->b[0]-c->c[0])*bxc[0] + (ppos[1]-c->pos[1]-c->a[1]-c->b[1]-c->c[1])*bxc[1] + (ppos[2]-c->pos[2]-c->a[2]-c->b[2]-c->c[2])*bxc[2];
@@ -904,11 +904,11 @@ void calculate_rhomboid_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 	d /= tmp;
 
 	if(abs(d) < abs(*dist))
-	{																						
+	{
 		vec[0] = d * bxc[0]/tmp;
 		vec[1] = d * bxc[1]/tmp;
 		vec[2] = d * bxc[2]/tmp;
-	
+
 		*dist = c->direction * d;
 	}
 }
@@ -929,25 +929,25 @@ void calculate_pore_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
      double c1_r, c1_z, c2_r, c2_z;
      double cone_vector_r, cone_vector_z, p1_r, p1_z, dist_vector_z, dist_vector_r, temp;
 
-     
+
      slope = (c->rad_right - c->rad_left)/2./(c->length-c->smoothing_radius);
      slope2 = (c->outer_rad_right - c->outer_rad_left)/2./(c->length-c->smoothing_radius);
 
   /* compute the position relative to the center of the pore */
   for(i=0;i<3;i++) {
-    c_dist[i] = ppos[i] - c->pos[i]; 
-  } 
-  
+    c_dist[i] = ppos[i] - c->pos[i];
+  }
+
   /* compute the component parallel to the pore axis */
-  z =0.; 
+  z =0.;
   for(i=0;i<3;i++) {
     z += (c_dist[i] * c->axis[i]);
   }
-  
+
   /* decompose the position into parallel and perpendicular to the axis */
   r = 0.;
   for(i=0;i<3;i++) {
-    z_vec[i] = z * c->axis[i]; 
+    z_vec[i] = z * c->axis[i];
     r_vec[i] = c_dist[i] - z_vec[i];
     r += r_vec[i]*r_vec[i];
   }
@@ -956,19 +956,19 @@ void calculate_pore_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
 
   /* calculate norm and unit vectors for both */
   norm = 0;
-  for(i=0;i<3;i++) 
-    norm += z_vec[i]*z_vec[i]; 
+  for(i=0;i<3;i++)
+    norm += z_vec[i]*z_vec[i];
   norm = sqrt(norm);
-  for(i=0;i<3;i++) 
+  for(i=0;i<3;i++)
     e_z[i] = c->axis[i];
   norm = 0;
-  for(i=0;i<3;i++) 
-    norm += r_vec[i]*r_vec[i]; 
+  for(i=0;i<3;i++)
+    norm += r_vec[i]*r_vec[i];
   norm = sqrt(norm);
-  for(i=0;i<3;i++) 
+  for(i=0;i<3;i++)
     e_r[i] = r_vec[i]/norm;
-  
-  /* c?_r/z and are the centers of the circles that are used to smooth 
+
+  /* c?_r/z and are the centers of the circles that are used to smooth
    * the entrance of the pore in cylindrical coordinates*/
   c1_z = - (c->length - c->smoothing_radius);
   c2_z = + (c->length - c->smoothing_radius);
@@ -984,7 +984,7 @@ void calculate_pore_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
 
   double c1_or = c->outer_rad_left-c->smoothing_radius;
   double c2_or = c->outer_rad_right-c->smoothing_radius;
- 
+
   /* Check if we are in the region of the left wall */
   if (( (r >= c1_r) && (r <= c1_or) && (z <= c1_z) )) {
     dist_vector_z=-z - c->length;
@@ -1010,7 +1010,7 @@ void calculate_pore_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
 
   cone_vector_z=1/sqrt(1+slope*slope);
   cone_vector_r=slope/sqrt(1+slope*slope);
-  
+
   double cone_vector_z_o=1/sqrt(1+slope2*slope2);
   double cone_vector_r_o=slope2/sqrt(1+slope2*slope2);
 
@@ -1089,7 +1089,7 @@ void calculate_pore_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
   /* upper left smoothing circle */
   if (p2_z <= c1_z && r >= c1_or ) {
     /* distance from the smoothing center */
-    // Since: c2_or_or seems to be set to numeric_limits<double>max(), 
+    // Since: c2_or_or seems to be set to numeric_limits<double>max(),
     // this case being true means, that r is out of numerical limits.
     // I suggest deleting it!
     norm = sqrt( (z - c1_z)*(z - c1_z) + (r - c1_or)*(r - c1_or) );
@@ -1110,7 +1110,7 @@ void calculate_pore_dist(Particle *p1, double ppos[3], Particle *c_p, Constraint
   }
   /* Check if we are in the range of the upper right smoothing circle */
   if (p2_z >= c2_z && r >= c2_or ) {
-    // Since: c2_or_or seems to be set to numeric_limits<double>max(), 
+    // Since: c2_or_or seems to be set to numeric_limits<double>max(),
     // this case being true means, that r is out of numerical limits.
     // I suggest deleting it!
     norm = sqrt( (z - c2_z)*(z - c2_z) + (r - c2_or)*(r - c2_or) );
@@ -1129,7 +1129,7 @@ void calculate_plane_dist(Particle *p1, double ppos[3], Particle *c_p, Constrain
 {
   int i;
   double c_dist_sqr,c_dist;
-  
+
   c_dist_sqr=0.0;
   for(i=0;i<3;i++) {
     if(c->pos[i] >= 0) {
@@ -1143,14 +1143,14 @@ void calculate_plane_dist(Particle *p1, double ppos[3], Particle *c_p, Constrain
   c_dist = sqrt(c_dist_sqr);
   *dist = c_dist;
 
-  
+
   for(i=0;i<3;i++) {
     vec[i] *= -1;
   }
 }
 
-void calculate_stomatocyte_dist( Particle *p1, double ppos [3], 
-                                 Particle *c_p, Constraint_stomatocyte *cons, 
+void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
+                                 Particle *c_p, Constraint_stomatocyte *cons,
                                  double *dist, double *vec )
 {
   // Parameters
@@ -1184,7 +1184,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   a = a*c;
   b = b*c;
 
-  // Set the position and orientation of the stomatocyte 
+  // Set the position and orientation of the stomatocyte
 
   double stomatocyte_3D_position [3] = { cons->position_x,
                                          cons->position_y,
@@ -1197,7 +1197,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   // Set the point for which we want to know the distance
 
   double point_3D [3];
-  
+
   point_3D[0] = ppos[0];
   point_3D[1] = ppos[1];
   point_3D[2] = ppos[2];
@@ -1208,18 +1208,18 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   // where the difference segment is orthogonal
 
   mu = (
-           stomatocyte_3D_orientation[0]*point_3D[0] 
-         + stomatocyte_3D_orientation[1]*point_3D[1]  
+           stomatocyte_3D_orientation[0]*point_3D[0]
+         + stomatocyte_3D_orientation[1]*point_3D[1]
          + stomatocyte_3D_orientation[2]*point_3D[2]
-         - stomatocyte_3D_position[0]*stomatocyte_3D_orientation[0] 
-         - stomatocyte_3D_position[1]*stomatocyte_3D_orientation[1] 
-         - stomatocyte_3D_position[2]*stomatocyte_3D_orientation[2] 
+         - stomatocyte_3D_position[0]*stomatocyte_3D_orientation[0]
+         - stomatocyte_3D_position[1]*stomatocyte_3D_orientation[1]
+         - stomatocyte_3D_position[2]*stomatocyte_3D_orientation[2]
        ) / (
-               stomatocyte_3D_orientation[0]*stomatocyte_3D_orientation[0] 
-             + stomatocyte_3D_orientation[1]*stomatocyte_3D_orientation[1] 
+               stomatocyte_3D_orientation[0]*stomatocyte_3D_orientation[0]
+             + stomatocyte_3D_orientation[1]*stomatocyte_3D_orientation[1]
              + stomatocyte_3D_orientation[2]*stomatocyte_3D_orientation[2]
            );
-  
+
   // Then the closest point to the line is
 
   closest_point_3D[0] =   stomatocyte_3D_position[0]
@@ -1232,18 +1232,18 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   // So the shortest distance to the line is
 
   x_2D = sqrt(
-                 ( closest_point_3D[0] - point_3D[0] ) * 
-                   ( closest_point_3D[0] - point_3D[0] ) 
-               + ( closest_point_3D[1] - point_3D[1] ) * 
+                 ( closest_point_3D[0] - point_3D[0] ) *
+                   ( closest_point_3D[0] - point_3D[0] )
+               + ( closest_point_3D[1] - point_3D[1] ) *
                    ( closest_point_3D[1] - point_3D[1] )
-               + ( closest_point_3D[2] - point_3D[2] ) * 
+               + ( closest_point_3D[2] - point_3D[2] ) *
                    ( closest_point_3D[2] - point_3D[2] )
              );
 
-  
+
   y_2D = mu*sqrt(
-                    stomatocyte_3D_orientation[0]*stomatocyte_3D_orientation[0] 
-                  + stomatocyte_3D_orientation[1]*stomatocyte_3D_orientation[1] 
+                    stomatocyte_3D_orientation[0]*stomatocyte_3D_orientation[0]
+                  + stomatocyte_3D_orientation[1]*stomatocyte_3D_orientation[1]
                   + stomatocyte_3D_orientation[2]*stomatocyte_3D_orientation[2]
                 );
 
@@ -1251,48 +1251,48 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
 
   // Calculate intermediate results which we need to determine
   // the distance, these are basically points where the different
-  // segments of the 2D cut of the stomatocyte meet. The 
+  // segments of the 2D cut of the stomatocyte meet. The
   // geometry is rather complex however and details will not be given
 
   d = -sqrt( b*b + 4.0*b*c - 5.0*c*c ) + a - 2.0*c - b;
 
-  e = (   6.0*c*c - 2.0*c*d 
+  e = (   6.0*c*c - 2.0*c*d
         + a*( -3.0*c + d )
-        + sqrt( 
-                 - ( a - 2.0*c )*( a - 2.0*c ) * 
+        + sqrt(
+                 - ( a - 2.0*c )*( a - 2.0*c ) *
                      ( -2.0*a*a + 8.0*a*c + c*c + 6.0*c*d + d*d )
-              ) 
-      ) / ( 
-             2.0*( a - 2.0*c ) 
+              )
+      ) / (
+             2.0*( a - 2.0*c )
           );
 
   T0 = acos(
-              (   a*a*d + 5.0*c*c*d + d*d*d - a*a*e - 5.0*c*c*e 
-                + 6.0*c*d*e - 3.0*d*d*e - 6.0*c*e*e + 4.0*d*e*e - 2.0*e*e*e 
-                - ( 3.0*c + e)*sqrt( 
-                                      - a*a*a*a - ( 5.0*c*c + d*d + 6.0*c*e 
+              (   a*a*d + 5.0*c*c*d + d*d*d - a*a*e - 5.0*c*c*e
+                + 6.0*c*d*e - 3.0*d*d*e - 6.0*c*e*e + 4.0*d*e*e - 2.0*e*e*e
+                - ( 3.0*c + e)*sqrt(
+                                      - a*a*a*a - ( 5.0*c*c + d*d + 6.0*c*e
                                                     - 2.0*d*e + 2.0*e*e ) *
                                                     ( 5.0*c*c + d*d + 6.0*c*e
-                                                       - 2.0*d*e + 2.0*e*e ) 
+                                                       - 2.0*d*e + 2.0*e*e )
                                       + 2.0*a*a*( 13.0*c*c + d*d + 6.0*c*e
                                                    - 2.0*d*e + 2.0*e*e )
                                    )
               ) / (
                      2.0*a*( 9.0*c*c + d*d + 6.0*c*e - 2.0*d*e + 2.0*e*e )
-                  )   
+                  )
            );
 
   T1p = acos(
               - (   39.0*c*c*c + 3.0*c*d*d + 31.0*c*c*e
                   - 6.0*c*d*e + d*d*e + 12.0*c*e*e - 2.0*d*e*e
-                  + 2.0*e*e*e - a*a*( 3.0*c + e ) 
+                  + 2.0*e*e*e - a*a*( 3.0*c + e )
                   - d*sqrt(
                             - a*a*a*a
                             - ( 5.0*c*c + d*d + 6.0*c*e - 2.0*d*e + 2.0*e*e) *
                                 ( 5.0*c*c + d*d + 6.0*c*e - 2.0*d*e + 2.0*e*e)
-                            + 2.0*a*a*(   13.0*c*c + d*d + 6.0*c*e 
+                            + 2.0*a*a*(   13.0*c*c + d*d + 6.0*c*e
                                         - 2.0*d*e + 2.0*e*e )
-                          ) 
+                          )
                   + e*sqrt(
                             - a*a*a*a
                             - ( 5.0*c*c + d*d + 6.0*c*e - 2.0*d*e + 2.0*e*e) *
@@ -1310,32 +1310,32 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   T2 = e;
 
   T3sqrt = - b*b*c*c*(   a*a*a*a - 4.0*a*a*a*( b + 2.0*c + d )
-                       + 4.0*b*b*d*( 4.0*c + d ) 
-                       + ( 9.0*c*c + 4.0*c*d + d*d ) * 
+                       + 4.0*b*b*d*( 4.0*c + d )
+                       + ( 9.0*c*c + 4.0*c*d + d*d ) *
                            ( 9.0*c*c + 4.0*c*d + d*d)
                        + 4.0*b*( 18.0*c*c*c + 17.0*c*c*d + 6.0*c*d*d + d*d*d )
-                       + 2.0*a*a*(   2.0*b*b + 17.0*c*c + 12.0*c*d 
-                                   + 3.0*d*d + 6.0*b*( 2.0*c + d ) 
+                       + 2.0*a*a*(   2.0*b*b + 17.0*c*c + 12.0*c*d
+                                   + 3.0*d*d + 6.0*b*( 2.0*c + d )
                                  )
-                       - 4.0*a*(   18.0*c*c*c + 17.0*c*c*d + 6.0*c*d*d 
-                                 + d*d*d + 2.0*b*b*( 2.0*c + d ) 
+                       - 4.0*a*(   18.0*c*c*c + 17.0*c*c*d + 6.0*c*d*d
+                                 + d*d*d + 2.0*b*b*( 2.0*c + d )
                                  + b*( 17.0*c*c + 12.0*c*d + 3.0*d*d )
                                )
                      );
 
-  if ( T3sqrt < 0.0 ) 
+  if ( T3sqrt < 0.0 )
     T3sqrt = 0.0;
 
   T3p = acos(
-              - ( - a*a*a*b + 4.0*b*b*b*c + 25.0*b*b*c*c + 34.0*b*c*c*c 
+              - ( - a*a*a*b + 4.0*b*b*b*c + 25.0*b*b*c*c + 34.0*b*c*c*c
                   + 2.0*b*b*b*d + 12.0*b*b*c*d + 25.0*b*c*c*d + 3.0*b*b*d*d
-                  + 6.0*b*c*d*d + b*d*d*d + 3.0*a*a*b*( b + 2.0*c + d ) 
-                  - a*b*( 2.0*b*b + 25.0*c*c + 12.0*c*d 
+                  + 6.0*b*c*d*d + b*d*d*d + 3.0*a*a*b*( b + 2.0*c + d )
+                  - a*b*( 2.0*b*b + 25.0*c*c + 12.0*c*d
                   + 3.0*d*d + 6.0*b*( 2.0*c + d ) )
                   + 3.0*sqrt( T3sqrt )
                 ) / (
-                       4.0*b*c*(   a*a + b*b + 13.0*c*c + 4.0*c*d 
-                                 + d*d + 2.0*b*( 2.0*c + d ) 
+                       4.0*b*c*(   a*a + b*b + 13.0*c*c + 4.0*c*d
+                                 + d*d + 2.0*b*( 2.0*c + d )
                                  - 2.0*a*( b + 2.0*c + d )
                                )
                     )
@@ -1343,37 +1343,37 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
 
   T3 = 3.0*M_PI/4.0 - T3p;
 
-  T4sqrt = - b*b*c*c*(   a*a*a*a - 4.0*a*a*a*( b + 2.0*c + d ) 
-                       + 4.0*b*b*d*( 4.0*c + d ) 
-                       + ( 9.0*c*c + 4.0*c*d + d*d ) * 
+  T4sqrt = - b*b*c*c*(   a*a*a*a - 4.0*a*a*a*( b + 2.0*c + d )
+                       + 4.0*b*b*d*( 4.0*c + d )
+                       + ( 9.0*c*c + 4.0*c*d + d*d ) *
                            ( 9.0*c*c + 4.0*c*d + d*d )
                        + 4.0*b*(   18.0*c*c*c + 17.0*c*c*d
                        + 6.0*c*d*d + d*d*d )
-                       + 2.0*a*a*(   2.0*b*b + 17.0*c*c 
-                                   + 12.0*c*d + 3.0*d*d 
+                       + 2.0*a*a*(   2.0*b*b + 17.0*c*c
+                                   + 12.0*c*d + 3.0*d*d
                                    + 6.0*b*( 2.0*c + d ) )
                        - 4.0*a*(   18.0*c*c*c + 17.0*c*c*d
-                                 + 6.0*c*d*d + d*d*d 
+                                 + 6.0*c*d*d + d*d*d
                                  + 2.0*b*b*( 2.0*c + d )
-                                 + b*( 17.0*c*c + 12.0*c*d + 3.0*d*d )  
+                                 + b*( 17.0*c*c + 12.0*c*d + 3.0*d*d )
                                )
                      );
 
-  if ( T4sqrt < 0.0 ) 
+  if ( T4sqrt < 0.0 )
     T4sqrt = 0.0;
 
-  T4 = acos( 
+  T4 = acos(
              ( - a*a*a*b + 2.0*b*b*b*b + 8.0*b*b*b*c + 17.0*b*b*c*c
                + 18.0*b*c*c*c + 4.0*b*b*b*d + 12.0*b*b*c*d + 17.0*b*c*c*d
                + 3.0*b*b*d*d + 6.0*b*c*d*d + b*d*d*d
                + 3.0*a*a*b*( b + 2.0*c + d )
                - a*b*(   4.0*b*b + 17.0*c*c + 12.0*c*d
-                       + 3.0*d*d + 6.0*b*( 2.0*c + d ) 
+                       + 3.0*d*d + 6.0*b*( 2.0*c + d )
                      )
                - 3.0*sqrt( T4sqrt )
              ) / (
                     2.0*b*b*(   a*a + b*b + 13.0*c*c + 4.0*c*d
-                              + d*d + 2.0*b*( 2.0*c + d ) 
+                              + d*d + 2.0*b*( 2.0*c + d )
                               - 2.0*a*( b + 2.0*c + d )
                             )
                  )
@@ -1402,7 +1402,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
 
   // Distance of point of interest to center points
 
-  dst0 = sqrt(   ( pt0x - x_2D )*( pt0x - x_2D ) 
+  dst0 = sqrt(   ( pt0x - x_2D )*( pt0x - x_2D )
                + ( pt0y - y_2D )*( pt0y - y_2D ) );
   dst1 = sqrt(   ( pt1x - x_2D )*( pt1x - x_2D )
                + ( pt1y - y_2D )*( pt1y - y_2D ) );
@@ -1411,7 +1411,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   dst3 = sqrt(   ( pt3x - x_2D )*( pt3x - x_2D )
                + ( pt3y - y_2D )*( pt3y - y_2D ) );
 
-  // Now for the minimum distances, the fourth 
+  // Now for the minimum distances, the fourth
   // is for the line segment
 
   mdst0 = ( dst0 < rad0 ? rad0 - dst0 : dst0 - rad0 );
@@ -1427,7 +1427,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   ttota = T0 + T1 + T2 + T3 + T4;
 
   t0 = acos( ( y_2D - pt0y )/sqrt(   ( x_2D - pt0x )*( x_2D - pt0x )
-                                   + ( y_2D - pt0y )*( y_2D - pt0y ) ) 
+                                   + ( y_2D - pt0y )*( y_2D - pt0y ) )
            );
   t1 = acos( ( x_2D - pt1x )/sqrt(   ( x_2D - pt1x )*( x_2D - pt1x )
                                    + ( y_2D - pt1y )*( y_2D - pt1y ) )
@@ -1441,9 +1441,9 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
 
   t4 = ( 3.0*c - d + 2.0*e + 2.0*T0 + 2.0*T1 - x_2D + y_2D )/( 2.0*ttota );
 
-  // Now we can use these times to check whether or not the 
-  // point where the shortest distance is found is on the 
-  // segment of the circles or line that contributes to the 
+  // Now we can use these times to check whether or not the
+  // point where the shortest distance is found is on the
+  // segment of the circles or line that contributes to the
   // stomatocyte contour
 
   time0 = (T0 + T1)/ttota;
@@ -1459,7 +1459,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   int iolist [5] = { io0, io1, io2, io3, io4 };
   double distlist [5] = { mdst0, mdst1, mdst2, mdst3, mdst4 };
 
-  // Now we only need to consider those distances for which 
+  // Now we only need to consider those distances for which
   // the io# flag is set to 1
 
   number = -1;
@@ -1475,7 +1475,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
         mindist = distlist[i];
       }
 
-      if ( mindist > distlist[i] )  
+      if ( mindist > distlist[i] )
       {
         number = i;
         mindist = distlist[i];
@@ -1542,7 +1542,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
 
   /***** Convert 2D normal to 3D coordinates *****/
 
-  // Now that we have the normal in 2D we need to make a final 
+  // Now that we have the normal in 2D we need to make a final
   // transformation to get it in 3D. The minimum distance stays
   // the same though. We first get the normalized direction vector.
 
@@ -1559,10 +1559,10 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
 
   double matrix [9];
 
-  if ( xd*xd + yd*yd > 1.e-10 ) 
+  if ( xd*xd + yd*yd > 1.e-10 )
   {
       // Rotation matrix
-  
+
       matrix[0] = ( yd*yd + xd*xd*zd )/( xd*xd + yd*yd );
       matrix[1] = ( xd*yd*( zd - 1.0 ) )/( xd*xd + yd*yd );
       matrix[2] = xd;
@@ -1580,7 +1580,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
     // The matrix is the identity matrix or reverses
     // or does a 180 degree rotation to take z -> -z
 
-    if ( zd > 0 ) 
+    if ( zd > 0 )
     {
       matrix[0] = 1.0;
       matrix[1] = 0.0;
@@ -1608,7 +1608,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
       matrix[7] =  0.0;
       matrix[8] = -1.0;
     }
-  }   
+  }
 
   // Next we determine the 3D vector between the center
   // of the stomatocyte and the point of interest
@@ -1617,7 +1617,7 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   yp = point_3D[1] - stomatocyte_3D_position[1];
   zp = point_3D[2] - stomatocyte_3D_position[2];
 
-  // Now we use the inverse matrix to find the 
+  // Now we use the inverse matrix to find the
   // position of the point with respect to the origin
   // of the z-axis oriented stomatocyte located
   // in the origin
@@ -1641,32 +1641,32 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   }
   else
   {
-    // The point is on the rotational symmetry 
+    // The point is on the rotational symmetry
     // axis of the stomatocyte; a finite distance
     // away from the center the normal might have
     // an x and y component!
 
     normal_x_3D = 0.0;
     normal_y_3D = 0.0;
-    normal_z_3D = ( normal_y > 0.0 ? 1.0 : -1.0 );    
+    normal_z_3D = ( normal_y > 0.0 ? 1.0 : -1.0 );
   }
-   
+
   // Now we need to transform the normal back to
   // the real coordinate system
 
-  normal_3D_x =   matrix[0]*normal_x_3D 
+  normal_3D_x =   matrix[0]*normal_x_3D
                 + matrix[1]*normal_y_3D
                 + matrix[2]*normal_z_3D;
-  normal_3D_y =   matrix[3]*normal_x_3D 
+  normal_3D_y =   matrix[3]*normal_x_3D
                 + matrix[4]*normal_y_3D
                 + matrix[5]*normal_z_3D;
-  normal_3D_z =   matrix[6]*normal_x_3D 
+  normal_3D_z =   matrix[6]*normal_x_3D
                 + matrix[7]*normal_y_3D
                 + matrix[8]*normal_z_3D;
 
   // Pass the values we obtained to ESPResSo
 
-  if ( cons->direction == -1 ) 
+  if ( cons->direction == -1 )
   {
     // Apply force towards inside stomatocyte
 
@@ -1688,14 +1688,14 @@ void calculate_stomatocyte_dist( Particle *p1, double ppos [3],
   }
 
   // And we are done with the stomatocyte
-  
+
   vec[0] *= *dist;
   vec[1] *= *dist;
   vec[2] *= *dist;
 }
 
-void calculate_hollow_cone_dist( Particle *p1, double ppos [3], 
-                                 Particle *c_p, Constraint_hollow_cone *cons, 
+void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
+                                 Particle *c_p, Constraint_hollow_cone *cons,
                                  double *dist, double *vec )
 {
   // Parameters
@@ -1733,7 +1733,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   // Set the point for which we want to know the distance
 
   double point_3D[3];
-  
+
   point_3D[0] = ppos[0];
   point_3D[1] = ppos[1];
   point_3D[2] = ppos[2];
@@ -1744,18 +1744,18 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   // where the difference segment is orthogonal
 
   mu = (
-           hollow_cone_3D_orientation[0]*point_3D[0] 
-         + hollow_cone_3D_orientation[1]*point_3D[1]  
+           hollow_cone_3D_orientation[0]*point_3D[0]
+         + hollow_cone_3D_orientation[1]*point_3D[1]
          + hollow_cone_3D_orientation[2]*point_3D[2]
-         - hollow_cone_3D_position[0]*hollow_cone_3D_orientation[0] 
-         - hollow_cone_3D_position[1]*hollow_cone_3D_orientation[1] 
-         - hollow_cone_3D_position[2]*hollow_cone_3D_orientation[2] 
+         - hollow_cone_3D_position[0]*hollow_cone_3D_orientation[0]
+         - hollow_cone_3D_position[1]*hollow_cone_3D_orientation[1]
+         - hollow_cone_3D_position[2]*hollow_cone_3D_orientation[2]
        ) / (
-               hollow_cone_3D_orientation[0]*hollow_cone_3D_orientation[0] 
-             + hollow_cone_3D_orientation[1]*hollow_cone_3D_orientation[1] 
+               hollow_cone_3D_orientation[0]*hollow_cone_3D_orientation[0]
+             + hollow_cone_3D_orientation[1]*hollow_cone_3D_orientation[1]
              + hollow_cone_3D_orientation[2]*hollow_cone_3D_orientation[2]
            );
-  
+
   // Then the closest point to the line is
 
   closest_point_3D[0] =   hollow_cone_3D_position[0]
@@ -1768,18 +1768,18 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   // So the shortest distance to the line is
 
   x_2D = sqrt(
-                 ( closest_point_3D[0] - point_3D[0] ) * 
-                   ( closest_point_3D[0] - point_3D[0] ) 
-               + ( closest_point_3D[1] - point_3D[1] ) * 
+                 ( closest_point_3D[0] - point_3D[0] ) *
+                   ( closest_point_3D[0] - point_3D[0] )
+               + ( closest_point_3D[1] - point_3D[1] ) *
                    ( closest_point_3D[1] - point_3D[1] )
-               + ( closest_point_3D[2] - point_3D[2] ) * 
+               + ( closest_point_3D[2] - point_3D[2] ) *
                    ( closest_point_3D[2] - point_3D[2] )
              );
 
-  
+
   y_2D = mu*sqrt(
-                    hollow_cone_3D_orientation[0]*hollow_cone_3D_orientation[0] 
-                  + hollow_cone_3D_orientation[1]*hollow_cone_3D_orientation[1] 
+                    hollow_cone_3D_orientation[0]*hollow_cone_3D_orientation[0]
+                  + hollow_cone_3D_orientation[1]*hollow_cone_3D_orientation[1]
                   + hollow_cone_3D_orientation[2]*hollow_cone_3D_orientation[2]
                 );
 
@@ -1796,7 +1796,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   {
     time1 = t0;
     time2 = t0;
-  } 
+  }
   else if ( t0 > 1.0 )
   {
     time1 = 1.0;
@@ -1811,7 +1811,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   if ( t1 >= 0.0 && t1 <= 1.0 )
   {
     time3 = t1;
-  } 
+  }
   else if ( t1 > 1.0 )
   {
     time3 = 1.0;
@@ -1824,7 +1824,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   if ( t2 >= 0.0 && t2 <= 1.0 )
   {
     time4 = t2;
-  } 
+  }
   else if ( t2 > 1.0 )
   {
     time4 = 1.0;
@@ -1873,7 +1873,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
       mindist = distlist[i];
     }
 
-    if ( mindist > distlist[i] )  
+    if ( mindist > distlist[i] )
     {
       number = i;
       mindist = distlist[i];
@@ -1918,7 +1918,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
     {
       distance = -mindist;
       normal_x *= -1.0;
-      normal_y *= -1.0; 
+      normal_y *= -1.0;
     }
   }
   else if ( number == 1 )
@@ -1951,7 +1951,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
     {
       distance = -mindist;
       normal_x *= -1.0;
-      normal_y *= -1.0; 
+      normal_y *= -1.0;
     }
   }
   else if ( number == 2 )
@@ -1984,7 +1984,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
     {
       distance = -mindist;
       normal_x *= -1.0;
-      normal_y *= -1.0; 
+      normal_y *= -1.0;
     }
   }
   else if ( number == 3 )
@@ -2017,13 +2017,13 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
     {
       distance = -mindist;
       normal_x *= -1.0;
-      normal_y *= -1.0; 
+      normal_y *= -1.0;
     }
   }
 
   /***** Convert 2D normal to 3D coordinates *****/
 
-  // Now that we have the normal in 2D we need to make a final 
+  // Now that we have the normal in 2D we need to make a final
   // transformation to get it in 3D. The minimum distance stays
   // the same though. We first get the normalized direction vector.
 
@@ -2040,10 +2040,10 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
 
   double matrix [9];
 
-  if ( xd*xd + yd*yd > 1.e-10 ) 
+  if ( xd*xd + yd*yd > 1.e-10 )
   {
       // Rotation matrix
-  
+
       matrix[0] = ( yd*yd + xd*xd*zd )/( xd*xd + yd*yd );
       matrix[1] = ( xd*yd*( zd - 1.0 ) )/( xd*xd + yd*yd );
       matrix[2] = xd;
@@ -2061,7 +2061,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
     // The matrix is the identity matrix or reverses
     // or does a 180 degree rotation to take z -> -z
 
-    if ( zd > 0 ) 
+    if ( zd > 0 )
     {
       matrix[0] = 1.0;
       matrix[1] = 0.0;
@@ -2089,7 +2089,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
       matrix[7] =  0.0;
       matrix[8] = -1.0;
     }
-  }   
+  }
 
   // Next we determine the 3D vector between the center
   // of the hollow cylinder and the point of interest
@@ -2098,7 +2098,7 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   yp = point_3D[1] - hollow_cone_3D_position[1];
   zp = point_3D[2] - hollow_cone_3D_position[2];
 
-  // Now we use the inverse matrix to find the 
+  // Now we use the inverse matrix to find the
   // position of the point with respect to the origin
   // of the z-axis oriented hollow cone located
   // in the origin
@@ -2122,32 +2122,32 @@ void calculate_hollow_cone_dist( Particle *p1, double ppos [3],
   }
   else
   {
-    // The point is on the rotational symmetry 
+    // The point is on the rotational symmetry
     // axis of the hollow cone; a finite distance
     // away from the center the normal might have
     // an x and y component!
 
     normal_x_3D = 0.0;
     normal_y_3D = 0.0;
-    normal_z_3D = ( normal_y > 0.0 ? 1.0 : -1.0 );    
+    normal_z_3D = ( normal_y > 0.0 ? 1.0 : -1.0 );
   }
-   
+
   // Now we need to transform the normal back to
   // the real coordinate system
 
-  normal_3D_x =   matrix[0]*normal_x_3D 
+  normal_3D_x =   matrix[0]*normal_x_3D
                 + matrix[1]*normal_y_3D
                 + matrix[2]*normal_z_3D;
-  normal_3D_y =   matrix[3]*normal_x_3D 
+  normal_3D_y =   matrix[3]*normal_x_3D
                 + matrix[4]*normal_y_3D
                 + matrix[5]*normal_z_3D;
-  normal_3D_z =   matrix[6]*normal_x_3D 
+  normal_3D_z =   matrix[6]*normal_x_3D
                 + matrix[7]*normal_y_3D
                 + matrix[8]*normal_z_3D;
 
   // Pass the values we obtained to ESPResSo
 
-  if ( cons->direction == -1 ) 
+  if ( cons->direction == -1 )
   {
     // Apply force towards inside hollow cone
 
@@ -2183,13 +2183,13 @@ void calculate_voxel_dist(Particle *p1, double ppos[3], Particle *c_p, Constrain
   //double vec_cut[3];
   //double halfgrid = lbpar.agrid/2.0;
 	////printf("n %.0lf %.0lf %.0lf pos %.0lf %.0lf %.0lf \n", c->n[0],c->n[1],c->n[2],c->pos[0],c->pos[1],c->pos[2]);
-	
+
   //c_dist=0.0;
   //c_dist_cut=0.0;
     //for(i=0;i<3;i++) {
 		//vec[i] = c->pos[i] - ppos[i];
 		//c_dist += SQR(vec[i]);
-		
+
 		//if(c->n[i] != 0.0) {
 			//vec_cut[i] = vec[i];
 			//c_dist_cut += SQR(vec[i]);
@@ -2198,7 +2198,7 @@ void calculate_voxel_dist(Particle *p1, double ppos[3], Particle *c_p, Constrain
 			//vec_cut[i] = 0.0;
 		//}
   //}
-  
+
   //// check if vec[i] is less than half grid length.
   //if(vec[0]>-halfgrid && vec[0]<halfgrid && vec[1]>-halfgrid && vec[1]<halfgrid && vec[2]>-halfgrid && vec[2]<halfgrid){
 	  //c_dist = sqrt(c_dist_cut);
@@ -2209,13 +2209,13 @@ void calculate_voxel_dist(Particle *p1, double ppos[3], Particle *c_p, Constrain
   //else {
 	  //c_dist = sqrt(c_dist);
   //}
-  
+
   ////printf("c_dist %.2lf vec %.2lf %.2lf %.2lf\n", c_dist, vec[0],vec[1],vec[2]);
-  
+
     ////*dist = -c_dist;//0.5 - c_dist;
     ////fac = *dist / c_dist;
     ////for(i=0;i<3;i++) vec[i] *= fac;
-    
+
     //// boundary is half gridlength away from lattice nodes (voxel boundary)
     //*dist = c_dist - halfgrid;
     //fac = *dist / c_dist;
@@ -2326,21 +2326,21 @@ void add_loc_ext_field_plate_force(Particle *p1, double ppos[3], Constraint_loc_
     double field[3];
     double x, z;
     double x_p, x_m;
-    
+
     x = ppos[0] - c->pos[0];
     z = ppos[2] - c->pos[2];
-    
+
     x_p = x + c->size/2.;
-    x_m = x - c->size/2.;  
-    
-    dx_fieldx = c->sigma * 2.*(x_p/(x_p*x_p + z*z) - x_m/(x_m*x_m + z*z));
+    x_m = x - c->size/2.;
+
+    dx_fieldx = coulomb.Dprefactor * c->sigma * 2.*(x_p/(x_p*x_p + z*z) - x_m/(x_m*x_m + z*z));
     dz_fieldz =-dx_fieldx;
-    dx_fieldz = c->sigma * 2.*z*(1./(x_p*x_p + z*z) - 1./(x_m*x_m + z*z));
+    dx_fieldz = coulomb.Dprefactor * c->sigma * 2.*z*(1./(x_p*x_p + z*z) - 1./(x_m*x_m + z*z));
     dz_fieldx = dx_fieldz;
-    
+
     p1->f.f[0] += p1->r.dip[0] * dx_fieldx + p1->r.dip[2] * dx_fieldz;
     p1->f.f[2] += p1->r.dip[0] * dz_fieldx + p1->r.dip[2] * dz_fieldz;
-    
+
     loc_ext_field_plate_set_field(field, c->sigma, c->size, x, z);
 
     p1->f.torque[0] += p1->r.dip[1] * field[2];
@@ -2356,12 +2356,12 @@ double loc_ext_field_plate_energy(Particle *p1, double ppos[3], Constraint_loc_e
 #ifdef DIPOLES
     double field[3];
     double x, z;
-    
+
     x = ppos[0] - c->pos[0];
     z = ppos[2] - c->pos[2];
-    
+
     loc_ext_field_plate_set_field(field, c->sigma, c->size, x, z);
-    
+
     return -1.0 * scalar(field, p1->r.dip);
 #endif
     return 0;
@@ -2374,7 +2374,7 @@ void add_loc_ext_field_force(Particle *p1, double ppos[3], Constraint_loc_ext_fi
   int j;
   for (j = 0; j < 3; j++) {
     if (ppos[j]<c->pmin[j] || ppos[j]>c->pmax[j]) {
-      //printf("dim %d of part %d pos: %f %f %f is out of the field bounds.\n", j, p1->p.identity, ppos[0], ppos[1], ppos[2]); 
+      //printf("dim %d of part %d pos: %f %f %f is out of the field bounds.\n", j, p1->p.identity, ppos[0], ppos[1], ppos[2]);
       return;
     }
   }
@@ -2389,11 +2389,11 @@ void add_loc_ext_field_force(Particle *p1, double ppos[3], Constraint_loc_ext_fi
 double loc_ext_field_energy(Particle *p1, double ppos[3], Constraint_loc_ext_field *c)
 {
 #ifdef DIPOLES
- //     printf("min pos: %f %f %f, max pos %f %f %f.\n", c->pmin[0], c->pmin[1], c->pmin[2], c->pmax[0], c->pmax[1], c->pmax[2]); 
+ //     printf("min pos: %f %f %f, max pos %f %f %f.\n", c->pmin[0], c->pmin[1], c->pmin[2], c->pmax[0], c->pmax[1], c->pmax[2]);
   int j;
   for (j = 0; j < 3; j++) {
     if (ppos[j]<c->pmin[j] || ppos[j]>c->pmax[j]) {
-      //printf("dim %d of part %d pos: %f %f %f is out of the field bounds.\n", j, p1->p.identity, ppos[0], ppos[1], ppos[2]); 
+      //printf("dim %d of part %d pos: %f %f %f is out of the field bounds.\n", j, p1->p.identity, ppos[0], ppos[1], ppos[2]);
       return 0;
     }
   }
@@ -2405,7 +2405,7 @@ double loc_ext_field_energy(Particle *p1, double ppos[3], Constraint_loc_ext_fie
 
 void reflect_particle(Particle *p1, double *distance_vec, int reflecting) {
   double vec[3];
-  double norm; 
+  double norm;
 
       double folded_pos[3];
       int img[3];
@@ -2417,7 +2417,7 @@ void reflect_particle(Particle *p1, double *distance_vec, int reflecting) {
       memmove(vec, distance_vec, 3*sizeof(double));
 /* For Debugging your can show the folded coordinates of the particle before
  * and after the reflecting by uncommenting these lines  */
- //     printf("position before reflection %f %f %f\n",folded_pos[0], folded_pos[1], folded_pos[2]); 
+ //     printf("position before reflection %f %f %f\n",folded_pos[0], folded_pos[1], folded_pos[2]);
 
 
        reflection_happened = 1;
@@ -2426,14 +2426,14 @@ void reflect_particle(Particle *p1, double *distance_vec, int reflecting) {
        p1->r.p[1] = p1->r.p[1]-2*vec[1];
        p1->r.p[2] = p1->r.p[2]-2*vec[2];
 
-   /*  This can show the folded position after reflection      
+   /*  This can show the folded position after reflection
        memmove(folded_pos, p1->r.p, 3*sizeof(double));
        memmove(img, p1->l.i, 3*sizeof(int));
        fold_position(folded_pos, img);
        printf("position after reflection %f %f %f\n",folded_pos[0], folded_pos[1], folded_pos[2]); */
 
        /* vec seams to be the vector that points from the wall to the particle*/
-       /* now normalize it */ 
+       /* now normalize it */
        if ( reflecting==1 ) {
          vec[0] /= norm;
          vec[1] /= norm;
@@ -2481,9 +2481,9 @@ void add_constraints_forces(Particle *p1)
     }
 
     switch(constraints[n].type) {
-    case CONSTRAINT_WAL: 
+    case CONSTRAINT_WAL:
       if(checkIfInteraction(ia_params)) {
-	calculate_wall_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.wal, &dist, vec); 
+	calculate_wall_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.wal, &dist, vec);
 	if ( dist > 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2515,7 +2515,7 @@ void add_constraints_forces(Particle *p1)
 
     case CONSTRAINT_SPH:
       if(checkIfInteraction(ia_params)) {
-	calculate_sphere_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.sph, &dist, vec); 
+	calculate_sphere_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.sph, &dist, vec);
 	if ( dist > 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2539,10 +2539,10 @@ void add_constraints_forces(Particle *p1)
 	}
       }
       break;
-    
-    case CONSTRAINT_CYL: 
+
+    case CONSTRAINT_CYL:
       if(checkIfInteraction(ia_params)) {
-	calculate_cylinder_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.cyl, &dist, vec); 
+	calculate_cylinder_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.cyl, &dist, vec);
 	if ( dist > 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2566,10 +2566,10 @@ void add_constraints_forces(Particle *p1)
         }
       }
       break;
-    
-    case CONSTRAINT_RHOMBOID: 
+
+    case CONSTRAINT_RHOMBOID:
       if(checkIfInteraction(ia_params)) {
-	calculate_rhomboid_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.rhomboid, &dist, vec); 
+	calculate_rhomboid_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.rhomboid, &dist, vec);
 	if ( dist > 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2593,10 +2593,10 @@ void add_constraints_forces(Particle *p1)
         }
       }
       break;
-	
-    case CONSTRAINT_MAZE: 
+
+    case CONSTRAINT_MAZE:
       if(checkIfInteraction(ia_params)) {
-	calculate_maze_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.maze, &dist, vec); 
+	calculate_maze_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.maze, &dist, vec);
 	if ( dist > 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2617,9 +2617,9 @@ void add_constraints_forces(Particle *p1)
       }
       break;
 
-    case CONSTRAINT_PORE: 
+    case CONSTRAINT_PORE:
       if(checkIfInteraction(ia_params)) {
-	calculate_pore_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.pore, &dist, vec); 
+	calculate_pore_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.pore, &dist, vec);
 	if ( dist >= 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2636,9 +2636,9 @@ void add_constraints_forces(Particle *p1)
       }
       }
       break;
-    case CONSTRAINT_SLITPORE: 
+    case CONSTRAINT_SLITPORE:
       if(checkIfInteraction(ia_params)) {
-	calculate_slitpore_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.slitpore, &dist, vec); 
+	calculate_slitpore_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.slitpore, &dist, vec);
 	if ( dist >= 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2655,9 +2655,9 @@ void add_constraints_forces(Particle *p1)
       }
       }
       break;
-    case CONSTRAINT_OPENSLIT: 
+    case CONSTRAINT_OPENSLIT:
       if(checkIfInteraction(ia_params)) {
-	calculate_openslit_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.openslit, &dist, vec); 
+	calculate_openslit_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.openslit, &dist, vec);
 	if ( dist >= 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2675,13 +2675,13 @@ void add_constraints_forces(Particle *p1)
       }
       break;
     case CONSTRAINT_STOMATOCYTE:
-      if( checkIfInteraction(ia_params) ) 
+      if( checkIfInteraction(ia_params) )
       {
 
-        calculate_stomatocyte_dist( p1, folded_pos, &constraints[n].part_rep, 
+        calculate_stomatocyte_dist( p1, folded_pos, &constraints[n].part_rep,
                                     &constraints[n].c.stomatocyte, &dist, vec );
 
-	      if ( dist > 0 ) 
+	      if ( dist > 0 )
         {
 	        calc_non_bonded_pair_force( p1, &constraints[n].part_rep,
 				                              ia_params, vec, dist, dist*dist,
@@ -2689,7 +2689,7 @@ void add_constraints_forces(Particle *p1)
 	      }
 	      else if ( dist <= 0 && constraints[n].c.stomatocyte.penetrable == 1 )
         {
-	        if ( dist < 0 ) 
+	        if ( dist < 0 )
           {
 	          calc_non_bonded_pair_force( p1, &constraints[n].part_rep,
 				                                ia_params, vec, -1.0*dist, dist*dist,
@@ -2700,9 +2700,9 @@ void add_constraints_forces(Particle *p1)
         {
           if( constraints[n].c.stomatocyte.reflecting )
           {
-            reflect_particle( p1, &(vec[0]), 
+            reflect_particle( p1, &(vec[0]),
                               constraints[n].c.stomatocyte.reflecting );
-          } 
+          }
           else
           {
               ostringstream msg;
@@ -2714,13 +2714,13 @@ void add_constraints_forces(Particle *p1)
     break;
 
     case CONSTRAINT_HOLLOW_CONE:
-      if( checkIfInteraction(ia_params) ) 
+      if( checkIfInteraction(ia_params) )
       {
 
-        calculate_hollow_cone_dist( p1, folded_pos, &constraints[n].part_rep, 
+        calculate_hollow_cone_dist( p1, folded_pos, &constraints[n].part_rep,
                                     &constraints[n].c.hollow_cone, &dist, vec );
 
-	      if ( dist > 0 ) 
+	      if ( dist > 0 )
         {
 	        calc_non_bonded_pair_force( p1, &constraints[n].part_rep,
 				                              ia_params, vec, dist, dist*dist,
@@ -2728,7 +2728,7 @@ void add_constraints_forces(Particle *p1)
 	      }
 	      else if ( dist <= 0 && constraints[n].c.hollow_cone.penetrable == 1 )
         {
-	        if ( dist < 0 ) 
+	        if ( dist < 0 )
           {
 	          calc_non_bonded_pair_force( p1, &constraints[n].part_rep,
 				                                ia_params, vec, -1.0*dist, dist*dist,
@@ -2739,9 +2739,9 @@ void add_constraints_forces(Particle *p1)
         {
           if( constraints[n].c.hollow_cone.reflecting )
           {
-            reflect_particle( p1, &(vec[0]), 
+            reflect_particle( p1, &(vec[0]),
                               constraints[n].c.hollow_cone.reflecting );
-          } 
+          }
           else
           {
               ostringstream msg;
@@ -2751,10 +2751,10 @@ void add_constraints_forces(Particle *p1)
 	      }
       }
     break;
-    
+
     case CONSTRAINT_VOXEL:
       if(checkIfInteraction(ia_params)) {
-	calculate_voxel_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.voxel, &dist, vec); 
+	calculate_voxel_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.voxel, &dist, vec);
 	if ( dist > 0 ) {
 	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				     ia_params,vec,dist,dist*dist, force,
@@ -2776,22 +2776,22 @@ void add_constraints_forces(Particle *p1)
     case CONSTRAINT_PLATE:
       add_plate_force(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.plate);
       break;
-      
+
 #ifdef DIPOLES
     case CONSTRAINT_EXT_MAGN_FIELD:
       add_ext_magn_field_force(p1, &constraints[n].c.emfield);
     case CONSTRAINT_LOC_EXT_FIELD_PLATE:
       add_loc_ext_field_plate_force(p1, folded_pos, &constraints[n].c.lefield_plate);
       break;
-    
+
     case CONSTRAINT_LOC_EXT_FIELD:
       add_loc_ext_field_force(p1, folded_pos, &constraints[n].c.lefield);
       break;
 #endif
-    
+
     case CONSTRAINT_PLANE:
      if(checkIfInteraction(ia_params)) {
-	calculate_plane_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.plane, &dist, vec); 
+	calculate_plane_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.plane, &dist, vec);
 	if (dist > 0) {
 	    calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
 				       ia_params,vec,dist,dist*dist, force,
@@ -2839,7 +2839,7 @@ double add_constraints_energy(Particle *p1)
   memmove(folded_pos, p1->r.p, 3*sizeof(double));
   memmove(img, p1->l.i, 3*sizeof(int));
   fold_position(folded_pos, img);
-  for(n=0;n<n_constraints;n++) { 
+  for(n=0;n<n_constraints;n++) {
     ia_params = get_ia_param(p1->p.type, (&constraints[n].part_rep)->p.type);
     nonbonded_en = 0.;
     coulomb_en   = 0.;
@@ -2847,9 +2847,9 @@ double add_constraints_energy(Particle *p1)
 
     dist=0.;
     switch(constraints[n].type) {
-    case CONSTRAINT_WAL: 
+    case CONSTRAINT_WAL:
       if(checkIfInteraction(ia_params)) {
-	calculate_wall_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.wal, &dist, vec); 
+	calculate_wall_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.wal, &dist, vec);
 	if ( dist > 0 ) {
 	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
 						     ia_params, vec, dist, dist*dist);
@@ -2867,10 +2867,10 @@ double add_constraints_energy(Particle *p1)
 	}
       }
       break;
-	
-    case CONSTRAINT_SPH: 
+
+    case CONSTRAINT_SPH:
       if(checkIfInteraction(ia_params)) {
-	calculate_sphere_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.sph, &dist, vec); 
+	calculate_sphere_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.sph, &dist, vec);
 	if ( dist > 0 ) {
 	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
 						     ia_params, vec, dist, dist*dist);
@@ -2888,10 +2888,10 @@ double add_constraints_energy(Particle *p1)
 	}
       }
       break;
-	
-    case CONSTRAINT_CYL: 
+
+    case CONSTRAINT_CYL:
       if(checkIfInteraction(ia_params)) {
-	calculate_cylinder_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.cyl, &dist , vec); 
+	calculate_cylinder_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.cyl, &dist , vec);
 	if ( dist > 0 ) {
 	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
 						     ia_params, vec, dist, dist*dist);
@@ -2910,10 +2910,10 @@ double add_constraints_energy(Particle *p1)
 	}
       }
       break;
-	
-    case CONSTRAINT_RHOMBOID: 
+
+    case CONSTRAINT_RHOMBOID:
       if(checkIfInteraction(ia_params)) {
-	calculate_rhomboid_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.rhomboid, &dist , vec); 
+	calculate_rhomboid_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.rhomboid, &dist , vec);
 	if ( dist > 0 ) {
 	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
 						     ia_params, vec, dist, dist*dist);
@@ -2933,9 +2933,9 @@ double add_constraints_energy(Particle *p1)
       }
       break;
 
-    case CONSTRAINT_MAZE: 
+    case CONSTRAINT_MAZE:
       if(checkIfInteraction(ia_params)) {
-	calculate_maze_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.maze, &dist, vec); 
+	calculate_maze_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.maze, &dist, vec);
 	if ( dist > 0 ) {
 	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
 						     ia_params, vec, dist, dist*dist);
@@ -2954,9 +2954,9 @@ double add_constraints_energy(Particle *p1)
       }
       break;
 
-    case CONSTRAINT_PORE: 
+    case CONSTRAINT_PORE:
       if(checkIfInteraction(ia_params)) {
-	calculate_pore_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.pore, &dist , vec); 
+	calculate_pore_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.pore, &dist , vec);
 	if ( dist > 0 ) {
 	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
 						     ia_params, vec, dist, dist*dist);
@@ -2970,15 +2970,15 @@ double add_constraints_energy(Particle *p1)
       }
       break;
 
-    case CONSTRAINT_STOMATOCYTE: 
-      if( checkIfInteraction(ia_params) ) 
+    case CONSTRAINT_STOMATOCYTE:
+      if( checkIfInteraction(ia_params) )
       {
 	      calculate_stomatocyte_dist( p1, folded_pos, &constraints[n].part_rep,
-                                    &constraints[n].c.stomatocyte, &dist, vec ); 
+                                    &constraints[n].c.stomatocyte, &dist, vec );
 
 	      if ( dist > 0 )
         {
-	        nonbonded_en = calc_non_bonded_pair_energy( p1, 
+	        nonbonded_en = calc_non_bonded_pair_energy( p1,
                                                       &constraints[n].part_rep,
 						                                          ia_params, vec, dist,
                                                       dist*dist );
@@ -2989,7 +2989,7 @@ double add_constraints_energy(Particle *p1)
           {
 	          nonbonded_en = calc_non_bonded_pair_energy(p1,
                                                        &constraints[n].part_rep,
-						                                           ia_params, vec, 
+						                                           ia_params, vec,
                                                        -1.0*dist, dist*dist);
 	        }
 	      }
@@ -3002,15 +3002,15 @@ double add_constraints_energy(Particle *p1)
       }
     break;
 
-    case CONSTRAINT_HOLLOW_CONE: 
-      if( checkIfInteraction(ia_params) ) 
+    case CONSTRAINT_HOLLOW_CONE:
+      if( checkIfInteraction(ia_params) )
       {
 	      calculate_hollow_cone_dist( p1, folded_pos, &constraints[n].part_rep,
-                                    &constraints[n].c.hollow_cone, &dist, vec ); 
+                                    &constraints[n].c.hollow_cone, &dist, vec );
 
 	      if ( dist > 0 )
         {
-	        nonbonded_en = calc_non_bonded_pair_energy( p1, 
+	        nonbonded_en = calc_non_bonded_pair_energy( p1,
                                                       &constraints[n].part_rep,
 						                                          ia_params, vec, dist,
                                                       dist*dist );
@@ -3021,7 +3021,7 @@ double add_constraints_energy(Particle *p1)
           {
 	          nonbonded_en = calc_non_bonded_pair_energy(p1,
                                                        &constraints[n].part_rep,
-						                                           ia_params, vec, 
+						                                           ia_params, vec,
                                                        -1.0*dist, dist*dist);
 	        }
 	      }
@@ -3046,12 +3046,12 @@ double add_constraints_energy(Particle *p1)
       magnetic_en = ext_magn_field_energy(p1, &constraints[n].c.emfield);
       break;
 
-    case CONSTRAINT_LOC_EXT_FIELD_PLATE:      
+    case CONSTRAINT_LOC_EXT_FIELD_PLATE:
       magnetic_en = loc_ext_field_plate_energy(p1, folded_pos, &constraints[n].c.lefield_plate);
       break;
 
     case CONSTRAINT_LOC_EXT_FIELD:
-      //printf("energy of: part %d pos: %f %f %f. \n", p1->p.identity, folded_pos[0], folded_pos[1], folded_pos[2]);       
+      //printf("energy of: part %d pos: %f %f %f. \n", p1->p.identity, folded_pos[0], folded_pos[1], folded_pos[2]);
       magnetic_en = loc_ext_field_energy(p1, folded_pos, &constraints[n].c.lefield);
       break;
 
@@ -3068,9 +3068,9 @@ double add_constraints_energy(Particle *p1)
       break;
   case CONSTRAINT_OPENSLIT:
     if(checkIfInteraction(ia_params)) {
-	    calculate_openslit_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.openslit, &dist, vec); 
+	    calculate_openslit_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.openslit, &dist, vec);
 	      if (dist >= 0) {
-          nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep, 
+          nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
             ia_params, vec, dist, dist*dist);
 	      } else {
             ostringstream msg;
@@ -3079,9 +3079,9 @@ double add_constraints_energy(Particle *p1)
         }
     }
       break;
-  case CONSTRAINT_VOXEL: 
+  case CONSTRAINT_VOXEL:
       if(checkIfInteraction(ia_params)) {
-	calculate_voxel_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.voxel, &dist, vec); 
+	calculate_voxel_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.voxel, &dist, vec);
 	if ( dist > 0 ) {
 	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
 						     ia_params, vec, dist, dist*dist);
@@ -3103,7 +3103,7 @@ double add_constraints_energy(Particle *p1)
 
     if (energy.n_coulomb > 0)
       energy.coulomb[0] += coulomb_en;
-    
+
     if (energy.n_dipolar > 0)
       energy.dipolar[0] += magnetic_en;
 
@@ -3165,7 +3165,7 @@ void calculate_slitpore_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
       return;
     }
   }
-  
+
   if (ppos[2] > c12[1]) {
     // Feel the pore wall
     if (ppos[0] < box_l_x/2) {
@@ -3234,7 +3234,7 @@ void calculate_openslit_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
 //  printf("c22 %f %f\n", c22[0], c22[1]);
 //  printf("c21 %f %f\n", c23[0], c23[1]);
 //  printf("c22 %f %f\n", c24[0], c24[1]);
-    
+
 
   // Feel the bulk side wall
   if (ppos[0] < c12[0] || ppos[0] > c11[0]) {
@@ -3307,7 +3307,7 @@ void calculate_openslit_dist(Particle *p1, double ppos[3], Particle *c_p, Constr
     }
     return;
   }
-    
+
   // Feel the inner smoothing
   if (ppos[0] > c13[0] || ppos[0] < c14[0]) {
     // inner smoothing bottom
